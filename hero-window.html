@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Эталон — первый экран</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400&family=Old+Standard+TT:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#0f0d0a;
+    --cream:#EAD8BC;
+    --cream-soft:rgba(234,216,188,.72);
+    --plate:rgba(243,235,221,.92);
+    --ink:#1E2320;
+    --signal:#D9572B;
+    --line:rgba(255,255,255,.55);
+    --gutter:clamp(16px,4.6vw,60px);
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--night);color:#fff}
+  body{font-family:'Oswald',system-ui,sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body.is-loading{overflow:hidden}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+  /* ---------- сцена: один экран, закреплённый на время скролла ---------- */
+  .stage{position:relative;height:100svh;min-height:600px;overflow:hidden;background:var(--night)}
+  .hero{position:absolute;inset:0;overflow:hidden}
+  .media{position:absolute;inset:0;clip-path:inset(78% 0 22% 0);will-change:clip-path}
+  .par{position:absolute;inset:0;will-change:transform}
+  .zoom{position:absolute;inset:0;will-change:transform}
+  .layer{position:absolute;inset:0;background:url("assets/hero-court-sky.jpg") center center/cover no-repeat}
+  /* итоговое затемнение — как на референсе; «dusk» — стартовое, ещё темнее */
+  .layer--dusk{filter:brightness(.26) saturate(.5) contrast(1.05)}
+  .layer--lit{
+    --r:0%;
+    filter:brightness(.56) saturate(.92) contrast(1.06);
+    -webkit-mask-image:radial-gradient(circle at 50% 62%,#000 var(--r),transparent calc(var(--r) + 18%));
+            mask-image:radial-gradient(circle at 50% 62%,#000 var(--r),transparent calc(var(--r) + 18%));
+  }
+  /* тёплый свет под курсором */
+  .layer--glow{
+    filter:brightness(1.05) saturate(1.1);
+    mix-blend-mode:screen;opacity:0;transition:opacity .6s;
+    -webkit-mask-image:radial-gradient(circle 240px at var(--mx,50%) var(--my,50%),rgba(0,0,0,.6),transparent 70%);
+            mask-image:radial-gradient(circle 240px at var(--mx,50%) var(--my,50%),rgba(0,0,0,.6),transparent 70%);
+  }
+  .hero.is-hover .layer--glow{opacity:1}
+  .hero.is-flying .layer--glow{opacity:0}
+  .win-glow{position:absolute;width:0;height:0;border-radius:50%;pointer-events:none;opacity:0;
+    background:radial-gradient(circle,rgba(255,206,140,1) 0%,rgba(255,176,96,.8) 35%,rgba(255,150,70,0) 70%);
+    mix-blend-mode:screen}
+
+  /* выноски: линия с изломом, точка в кольце, плашка «печатается» */
+  .callouts{position:absolute;inset:0;pointer-events:none}
+  .callouts svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .co-path{fill:none;stroke:var(--signal);stroke-width:1}
+  .co-dot{fill:var(--signal);opacity:0}
+  .co-ring{fill:none;stroke:var(--signal);stroke-width:1;opacity:0;transition:r .3s ease}
+  .co.hot .co-ring{r:14}
+  .co-label{position:absolute;font-size:13px;letter-spacing:.04em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;
+    clip-path:inset(0 100% 0 0);transition:background .25s,color .25s}
+  .co-label.hot{background:var(--signal);color:var(--ink)}
+
+  .shade{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(60% 34% at 50% 40%,rgba(10,9,7,.28),transparent 75%),linear-gradient(180deg,rgba(10,9,7,.5) 0%,rgba(10,9,7,0) 24%,rgba(10,9,7,0) 58%,rgba(10,9,7,.55) 100%)}
+  .grain{position:absolute;inset:-50%;pointer-events:none;opacity:.06;z-index:6;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation:grain 1s steps(6) infinite}
+  @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-4%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
+
+  /* интерьер кв. 24: гостиная, в окне — наш же двор */
+  .room{position:absolute;inset:0;z-index:5;opacity:0;pointer-events:none;overflow:hidden;background:var(--night)}
+  .room-img{position:absolute;inset:-3%;background:url("assets/interior-24.jpg") center center/cover no-repeat;will-change:transform}
+  .room::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(10,9,7,.45) 0%,rgba(10,9,7,0) 18%,rgba(10,9,7,0) 80%,rgba(10,9,7,.35) 100%)}
+
+  /* header */
+  .header{position:absolute;inset:0 0 auto;z-index:10;height:76px;display:flex;align-items:center;padding:0 var(--gutter)}
+  .header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line);transform:scaleX(var(--hl,0));transform-origin:center}
+  .burger{width:44px;height:44px;display:grid;align-content:center;gap:7px;margin-left:-6px;padding:6px}
+  .burger span{display:block;height:1px;background:#fff;transition:transform .5s var(--ease)}
+  .burger:hover span:first-child{transform:translateX(6px)}
+  .burger:hover span:last-child{transform:translateX(-6px)}
+  .logo-slot{position:absolute;left:0;right:0;top:0;bottom:0;margin:auto;width:max-content;height:max-content;
+    font-family:'Old Standard TT',serif;font-size:28px;letter-spacing:.12em;line-height:1;color:var(--cream);opacity:0;pointer-events:none}
+  .header-right{margin-left:auto;display:flex;align-items:center;gap:clamp(16px,4vw,48px)}
+  .phone{text-align:right;line-height:1.25}
+  .phone b{display:block;font-weight:300;font-size:15px;letter-spacing:.06em}
+  .phone small{font-size:11px;letter-spacing:.05em;opacity:.7}
+  .btn-call{position:relative;overflow:hidden;padding:12px 26px;font-size:14px;letter-spacing:.06em;color:#fff;background:rgba(190,196,214,.55);backdrop-filter:blur(2px);transition:color .4s}
+  .btn-call::before{content:"";position:absolute;inset:0;background:#fff;transform:translateY(101%);transition:transform .6s var(--ease)}
+  .btn-call:hover::before{transform:none}
+  .btn-call:hover{color:#1a1510}
+  .btn-call span{position:relative}
+  .reveal{display:inline-block;overflow:hidden;vertical-align:top}
+  .reveal > *{display:inline-block}
+
+  /* центр: заголовок и кнопка */
+  .center{position:absolute;z-index:8;left:0;right:0;top:31%;transform:translateY(-50%);text-align:center;padding:0 var(--gutter)}
+  .title{font-weight:200;font-size:clamp(30px,3.6vw,56px);letter-spacing:.01em;line-height:1.1}
+  .title .ch{display:inline-block;white-space:pre}
+  .cta-wrap{margin-top:clamp(20px,3.4vh,40px)}
+
+  /* кнопка: при наведении под линией выезжают засечки линейки */
+  .cta{position:relative;display:inline-flex;align-items:center;gap:14px;padding:8px 0 14px;font-size:clamp(17px,1.6vw,24px);letter-spacing:.06em;will-change:transform}
+  .cta::after{content:"";position:absolute;left:0;right:0;bottom:0;height:8px;
+    background:
+      linear-gradient(currentColor,currentColor) left bottom / 100% 1px no-repeat,
+      repeating-linear-gradient(90deg,currentColor 0 1px,transparent 1px 10px) left bottom / 0% 8px no-repeat;
+    transition:background-size .5s cubic-bezier(.2,.7,.2,1)}
+  .cta:hover::after,.cta:focus-visible::after{background-size:100% 1px,100% 8px}
+  .cta-dot{position:relative;width:28px;height:28px;border-radius:50%;background:#fff;display:grid;place-items:center;overflow:hidden;transition:transform .6s var(--ease)}
+  .cta-dot svg{width:13px;height:13px;transition:transform .6s var(--ease)}
+  .cta-dot svg + svg{position:absolute;transform:translateX(-24px)}
+  .cta:hover .cta-dot{transform:scale(1.25)}
+  .cta:hover .cta-dot svg:first-child{transform:translateX(24px)}
+  .cta:hover .cta-dot svg + svg{transform:none}
+
+  /* три факта над словом (bottom ставит JS по верху слова) */
+  .facts{position:absolute;z-index:8;left:var(--gutter);right:var(--gutter);bottom:40%;
+    display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center}
+  .fact{padding:12px 22px;font-size:clamp(15px,1.7vw,26px);font-weight:200;background:rgba(40,46,58,.42);backdrop-filter:blur(3px)}
+  .fact:nth-child(1){justify-self:start}
+  .fact:nth-child(2){justify-self:center}
+  .fact:nth-child(3){justify-self:end}
+
+  /* ЭТАЛОН: размер подгоняется под ширину, буквы целиком, линейка по базовой линии */
+  .name{position:absolute;z-index:7;left:0;bottom:calc(5vh + 34px);display:flex;align-items:flex-end;
+    font-family:'Old Standard TT',serif;font-weight:400;font-size:200px;letter-spacing:.04em;line-height:1;color:var(--cream);
+    white-space:nowrap;pointer-events:none;user-select:none;will-change:transform,opacity}
+  .name .ch{display:inline-block;flex-shrink:0;overflow:hidden;padding-top:.08em}
+  .name .ch > span{display:inline-block;will-change:transform}
+  .ruler{position:absolute;left:0;right:0;height:1px;background:var(--signal);transform-origin:left center;transform:scaleX(0)}
+  .tick{position:absolute;width:1px;height:11px;background:var(--signal);opacity:0}
+  .counter{position:absolute;right:0;font-size:12px;letter-spacing:.08em;line-height:1;opacity:0;font-variant-numeric:tabular-nums;color:var(--signal)}
+
+  .scroll-hint{position:absolute;z-index:9;right:var(--gutter);top:112px;writing-mode:vertical-rl;font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:.65;display:flex;align-items:center;gap:12px}
+  .scroll-hint i{width:1px;height:48px;background:rgba(255,255,255,.3);position:relative;overflow:hidden}
+  .scroll-hint i::after{content:"";position:absolute;inset:0;background:#fff;animation:drip 2.2s var(--ease) infinite}
+  @keyframes drip{0%{transform:translateY(-100%)}60%,100%{transform:translateY(100%)}}
+
+  /* курсор-дальномер: перекрестие через весь экран, кольцо, показание */
+  .xh{position:absolute;inset:0;z-index:20;pointer-events:none;opacity:0;transition:opacity .2s ease}
+  .hero.is-hover .xh.ready{opacity:1}
+  .hero.is-flying .xh,.hero:has(a:hover,button:hover) .xh{opacity:0 !important}
+  .xh-v,.xh-h{position:absolute;background:rgba(243,235,221,.45)}
+  .xh-v{top:0;bottom:0;width:1px}
+  .xh-h{left:0;right:0;height:1px}
+  .xh-c{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border:1px solid var(--signal);border-radius:50%}
+  .xh-read{position:absolute;font-size:12px;letter-spacing:.04em;color:var(--ink);background:var(--plate);padding:3px 8px;white-space:nowrap;transform:translate(16px,14px);font-variant-numeric:tabular-nums}
+  @media (hover:hover) and (pointer:fine){ .hero{cursor:none} .hero.is-flying{cursor:auto} .hero a,.hero button{cursor:pointer} }
+
+  /* следующий блок */
+  .next{min-height:100vh;display:grid;place-items:center;background:#EEEBE4;color:#1E2320;padding:80px var(--gutter);text-align:center}
+  .next p{font-family:'Old Standard TT',serif;font-size:clamp(28px,4vw,56px);max-width:16ch;line-height:1.15}
+  .next{grid-template-rows:1fr auto}
+  .next .note{font-size:12px;letter-spacing:.06em;color:#555C57}
+
+  @media (max-width:760px){
+    .phone,.scroll-hint{display:none}
+    .btn-call{padding:10px 16px;font-size:13px}
+    .center{top:27%}
+    .facts{grid-template-columns:1fr;gap:8px;justify-items:center}
+    .fact:nth-child(n){justify-self:center;padding:8px 16px;font-size:15px}
+    .fact:nth-child(2){display:none}
+    .co-hide-sm{display:none}
+    .logo-slot{font-size:20px;left:calc(var(--gutter) + 52px);right:auto;margin:auto 0}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .grain,.scroll-hint i::after{animation:none}
+  }
+</style>
+</head>
+<body class="is-loading">
+
+<section class="stage" id="stage">
+  <div class="hero" id="hero">
+    <div class="media">
+      <div class="par">
+        <div class="zoom">
+          <div class="layer layer--dusk"></div>
+          <div class="layer layer--lit"></div>
+          <div class="layer layer--glow"></div>
+          <div class="callouts" id="callouts"><svg id="coSvg" aria-hidden="true"></svg></div>
+          <div class="win-glow" id="winGlow"></div>
+        </div>
+      </div>
+      <div class="shade"></div>
+    </div>
+    <div class="room" id="room" role="img" aria-label="Гостиная квартиры 24 вечером, в окне — двор дома"><div class="room-img"></div></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="header" id="header">
+      <button class="burger" aria-label="Меню"><span></span><span></span><span></span></button>
+      <div class="logo-slot" id="logoSlot" aria-hidden="true">ЭТАЛОН</div>
+      <div class="header-right">
+        <a class="phone" href="tel:+74955662386">
+          <span class="reveal"><b>+7 (495) 566-23-86</b></span><br>
+          <span class="reveal"><small>Ежедневно с 9:00 до 21:00</small></span>
+        </a>
+        <a class="btn-call" href="#"><span>Заказать звонок</span></a>
+      </div>
+    </header>
+
+    <div class="center">
+      <h1 class="title" data-split>Клубный дом у&nbsp;леса</h1>
+      <div class="cta-wrap">
+        <a class="cta" href="#">
+          <span>Выбрать квартиру</span>
+          <span class="cta-dot" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" stroke="#1a1510" stroke-width="1.6"><path d="M1 7h11M7.5 2.5 12 7l-4.5 4.5"/></svg>
+            <svg viewBox="0 0 14 14" fill="none" stroke="#1a1510" stroke-width="1.6"><path d="M1 7h11M7.5 2.5 12 7l-4.5 4.5"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <div class="facts" id="facts">
+      <div class="fact">Цена котлована</div>
+      <div class="fact">15 минут пешком до ВДНХ</div>
+      <div class="fact">Ключи в конце 2028</div>
+    </div>
+
+    <div class="scroll-hint" aria-hidden="true">Листайте <i></i></div>
+
+    <div class="name" id="name" aria-label="ЭТАЛОН">
+      <span class="ch"><span>Э</span></span><span class="ch"><span>Т</span></span><span class="ch"><span>А</span></span><span class="ch"><span>Л</span></span><span class="ch"><span>О</span></span><span class="ch"><span>Н</span></span>
+      <div class="ruler" id="ruler"></div>
+      <div class="counter" id="counter">калибровка 000%</div>
+    </div>
+
+    <div class="xh" id="xh"><div class="xh-v" id="xhV"></div><div class="xh-h" id="xhH"></div><div class="xh-c" id="xhC"></div><div class="xh-read" id="xhR">x 0 · y 0</div></div>
+  </div>
+</section>
+
+<section class="next"><p>Здесь начнётся калькулятор</p><small class="note">Учебный проект. Объект, цены и контакты вымышлены.</small></section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(() => {
+  gsap.registerPlugin(ScrollTrigger);
+  // интро рассчитано на старт сверху: не даём ни браузеру, ни ScrollTrigger вернуть прошлую прокрутку
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  ScrollTrigger.clearScrollMemory('manual');
+  addEventListener('beforeunload', () => window.scrollTo(0, 0));
+  window.scrollTo(0, 0);
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  const title = $('[data-split]');
+  title.innerHTML = [...title.textContent].map(c => `<span class="ch">${c}</span>`).join('');
+
+  const hero = $('#hero'), header = $('#header'), logo = $('#logoSlot');
+  const nameEl = $('#name'), ruler = $('#ruler'), counter = $('#counter');
+  const chars = $$('.name .ch > span');
+  const lit = $('.layer--lit');
+  const zoom = $('.zoom'), par = $('.par'), glowEl = $('#winGlow'), room = $('#room');
+  const coWrap = $('#callouts'), coSvg = $('#coSvg'), facts = $('#facts');
+
+  // фото 2000×1125; точки выносок и окно кв. 24 — в координатах фото
+  // ?side — для сравнения: влёт в боковое окно; по умолчанию — горящее окно у центральной оси
+  const SIDE = new URLSearchParams(location.search).has('side');
+  const IMG_W = 2000, IMG_H = 1125;
+  const WIN = SIDE ? { x: 1914, y: 462, w: 142 } : { x: 1116, y: 661, w: 46 };
+  const CALLOUTS = SIDE ? [
+    { x: 1120, y: 545, ex: 1420, ey: 195, text: '6 этажей · 42 квартиры' },
+    { x: 425,  y: 440, ex: 540,  ey: 195, text: 'балконы 1,6 м · окна в пол', sm: true },
+    { x: 1914, y: 462, ex: 1820, ey: 330, text: 'кв. 24', target: true, sm: true }
+  ] : [
+    { x: 1240, y: 525, ex: 1380, ey: 195, m: { x: 1000, y: 520, ex: 1000, ey: 455 }, text: '6 этажей · 42 квартиры' },
+    { x: 425,  y: 440, ex: 540,  ey: 195, text: 'балконы 1,6 м · окна в пол', sm: true },
+    { x: 1116, y: 661, ex: 1300, ey: 470, text: 'кв. 24', target: true, sm: true }
+  ];
+
+  let introDone = false, coEls = [], baseline = 0;
+
+  function geo() {
+    const W = zoom.offsetWidth, H = zoom.offsetHeight;
+    const k = Math.max(W / IMG_W, H / IMG_H);
+    const ox = (W - IMG_W * k) / 2, oy = (H - IMG_H * k) / 2;
+    return { W, H, k, ox, oy, px: ox + WIN.x * k, py: oy + WIN.y * k };
+  }
+
+  /* ЭТАЛОН: контур букв от начала Э до конца Н ровно по сетке — краям плашек фактов.
+     Подгоняем по чернилам, а не по боксу: у букв есть боковые поля и трекинг после Н */
+  function fitName() {
+    const W = hero.clientWidth;
+    const gutter = parseFloat(getComputedStyle(facts).left);
+    $$('.name .tick').forEach(t => t.remove()); // старые засечки растягивают scrollWidth
+    nameEl.style.left = '0px';
+    nameEl.style.fontSize = '100px';
+
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.font = '400 100px "Old Standard TT"';
+    const chs = $$('.name .ch');
+    const first = chs[0], last = chs[chs.length - 1];
+    // дробные позиции: offsetLeft округляет, а ×3 это уже пиксели; sc снимает масштаб полёта в шапку
+    const nr = nameEl.getBoundingClientRect(), sc = nr.width / nameEl.offsetWidth || 1;
+    const posX = el => (el.getBoundingClientRect().left - nr.left) / sc;
+    const inkL = posX(first) - ctx.measureText(first.textContent).actualBoundingBoxLeft;
+    const inkR = posX(last) + ctx.measureText(last.textContent).actualBoundingBoxRight;
+    const size = 100 * (W - 2 * gutter) / (inkR - inkL);
+    nameEl.style.fontSize = size + 'px';
+    nameEl.style.left = (gutter - inkL * size / 100) + 'px';
+
+    // где базовая линия внутри строки (line-height:1)
+    ctx.font = `400 ${size}px "Old Standard TT"`;
+    const m = ctx.measureText('ЭТАЛОН');
+    const fa = m.fontBoundingBoxAscent || size * .9, fd = m.fontBoundingBoxDescent || size * .25;
+    baseline = fd + (size - fa - fd) / 2; // от низа строки до базовой линии
+
+    // слово опускаем к низу экрана: подпись под линейкой — в 24 px от края
+    nameEl.style.bottom = (56 - baseline) + 'px';
+    ruler.style.bottom = (baseline - 10) + 'px';
+    counter.style.bottom = (baseline - 32) + 'px';
+
+    $$('.name .ch').forEach((c, i) => {
+      [c.offsetLeft, c.offsetLeft + c.offsetWidth].forEach((x, j) => {
+        if (i > 0 && j === 0) return;
+        const t = document.createElement('div');
+        t.className = 'tick';
+        t.style.left = x + 'px';
+        t.style.bottom = (baseline - 15) + 'px';
+        nameEl.appendChild(t);
+      });
+    });
+
+    // факты — над верхом букв
+    const capTop = nameEl.offsetTop + nameEl.offsetHeight - baseline - size * .72;
+    facts.style.bottom = (hero.clientHeight - capTop + 22) + 'px';
+  }
+
+  /* Выноски: создаются один раз (на них ссылаются анимации), при ресайзе только переставляются.
+     Координаты — в .zoom, чтобы лететь вместе с фото */
+  function buildCallouts() {
+    const g = geo();
+    coSvg.setAttribute('viewBox', `0 0 ${g.W} ${g.H}`);
+    if (!coEls.length) {
+      const NS = 'http://www.w3.org/2000/svg';
+      CALLOUTS.forEach(co => {
+        const label = document.createElement('div');
+        label.className = 'co-label' + (co.sm ? ' co-hide-sm' : '');
+        label.textContent = co.text;
+        coWrap.appendChild(label);
+        const grp = document.createElementNS(NS, 'g'); grp.setAttribute('class', 'co' + (co.sm ? ' co-hide-sm' : ''));
+        const path = document.createElementNS(NS, 'path'); path.setAttribute('class', 'co-path');
+        const ring = document.createElementNS(NS, 'circle'); ring.setAttribute('class', 'co-ring'); ring.setAttribute('r', 8);
+        const dot = document.createElementNS(NS, 'circle'); dot.setAttribute('class', 'co-dot'); dot.setAttribute('r', 2.5);
+        grp.append(path, ring, dot);
+        coSvg.appendChild(grp);
+        coEls.push({ co, grp, path, ring, dot, label, text: co.text, target: co.target });
+      });
+    }
+    coEls.forEach(e => {
+      const { co, path, ring, dot, label } = e;
+      const c = g.W < 760 && co.m ? { ...co, ...co.m } : co; // на телефоне — короткая выноска
+      const x = g.ox + c.x * g.k, y = g.oy + c.y * g.k;
+      let ex = g.ox + c.ex * g.k;
+      const ey = g.oy + c.ey * g.k, lw = label.offsetWidth;
+      // плашке не хватает места у края экрана — выноска разворачивается в другую сторону
+      const vl = g.ox, vr = g.ox + IMG_W * g.k; // края фото в координатах .zoom
+      if (ex >= x && ex + 44 + lw > Math.min(g.W, vr) - 12) ex = x - (ex - x);
+      else if (ex < x && ex - 44 - lw < Math.max(0, vl) + 12) ex = x + (x - ex);
+      const right = ex >= x;
+      const lx = ex + (right ? 40 : -40);
+      path.setAttribute('d', `M${x} ${y} L${ex} ${ey} L${lx} ${ey}`);
+      ring.setAttribute('cx', x); ring.setAttribute('cy', y);
+      dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+      const len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      if (introDone || reduce) path.style.strokeDashoffset = 0;
+      else if (!path.style.strokeDashoffset) path.style.strokeDashoffset = len;
+      const minL = Math.max(0, vl) + 8, maxL = Math.min(g.W, vr) - lw - 8;
+      label.style.left = Math.min(maxL, Math.max(minL, right ? lx + 4 : lx - lw - 4)) + 'px';
+      label.style.top = (ey - label.offsetHeight / 2) + 'px';
+      if (reduce) {
+        gsap.set([ring, dot], { opacity: 1 });
+        gsap.set(label, { clipPath: 'inset(0 0% 0 0)' });
+      }
+      e.x = x; e.y = y;
+    });
+  }
+
+  function layout() { fitName(); buildCallouts(); }
+  // ScrollTrigger пересчитывает раскладку сам, но только после интро — до этого ловим resize вручную
+  let rt;
+  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 150); });
+
+  function boot() {
+    window.scrollTo(0, 0); // браузер мог успеть восстановить прокрутку, пока грузился шрифт
+    layout();
+
+    if (reduce) {
+      gsap.set('.media', { clipPath: 'inset(0% 0% 0% 0%)' });
+      lit.style.setProperty('--r', '140%');
+      header.style.setProperty('--hl', 1);
+      $('#xh').classList.add('ready');
+      document.body.classList.remove('is-loading');
+      introDone = true;
+      return;
+    }
+
+    // стартовые состояния
+    gsap.set(chars, { yPercent: 105 });
+    gsap.set('.title .ch', { yPercent: 60, opacity: 0, filter: 'blur(8px)' });
+    gsap.set('.reveal > *', { yPercent: 105 });
+    gsap.set(['.burger', '.btn-call', '.cta', '.scroll-hint', '.fact'], { opacity: 0, y: 14 });
+    gsap.set(zoom, { scale: 1.06 });
+    // фото раскрывается от линейки — стартовая щель на её высоте
+    const rr = ruler.getBoundingClientRect(), hr = hero.getBoundingClientRect();
+    const ct = ((rr.top - hr.top) / hr.height * 100).toFixed(2);
+    gsap.set('.media', { clipPath: `inset(${ct}% 0% ${(100 - ct).toFixed(2)}% 0%)` });
+
+    const count = { v: 0 };
+    const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
+
+    // 1. линейка по базовой линии, засечки по краям букв, счётчик калибровки
+    tl.to(ruler, { scaleX: 1, duration: .6, ease: 'power3.inOut' }, 0)
+      .to(counter, { opacity: 1, duration: .2 }, 0)
+      .to(count, { v: 100, duration: 1.3, ease: 'power3.out',
+        onUpdate: () => counter.textContent = 'калибровка ' + String(Math.round(count.v)).padStart(3, '0') + '%',
+        onComplete: () => counter.textContent = 'М 1 : 1' }, 0)
+      .to('.name .tick', { opacity: 1, duration: .2, stagger: .06 }, .35)
+
+    // 2. буквы поднимаются из-под линейки
+      .to(chars, { yPercent: 0, duration: .75, stagger: .075, ease: 'power4.out' }, .45)
+
+    // 3. фото раскрывается от линейки вверх и вниз, в окнах загорается свет
+      .to('.media', { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'power3.inOut' }, 1.0)
+      .to(zoom, { scale: 1, duration: 2.2, ease: 'power3.out' }, 1.0)
+      .to(lit, { '--r': '140%', duration: 2.4, ease: 'power2.inOut' }, 1.3)
+
+    // 4. шапка
+      .to(header, { '--hl': 1, duration: 1.4, ease: 'expo.inOut' }, 1.4)
+      .to(['.burger', '.btn-call'], { opacity: 1, y: 0, duration: 1, stagger: .08 }, 1.8)
+      .to('.header .reveal > *', { yPercent: 0, duration: 1, stagger: .06 }, 1.8)
+
+    // 5. заголовок, кнопка, факты; линейка со счётчиком своё отработала — уходят
+      .to('.title .ch', { yPercent: 0, opacity: 1, filter: 'blur(0px)', duration: 1.2, stagger: .025 }, 2.1)
+      .to('.cta', { opacity: 1, y: 0, duration: 1 }, 2.4)
+      .to('.fact', { opacity: 1, y: 0, duration: 1, stagger: .1 }, 2.4)
+      .to(counter, { opacity: 0, duration: .4 }, 2.4)
+      .to(ruler, { scaleX: 0, transformOrigin: 'right center', duration: .9, ease: 'power3.inOut' }, 2.6)
+      .to('.name .tick', { opacity: 0, duration: .3, stagger: { each: .05, from: 'end' } }, 2.6)
+      .to('.scroll-hint', { opacity: .65, y: 0, duration: 1 }, 2.8);
+
+    // 6. выноски: линия рисуется, точка с кольцом, плашка «печатается»
+    coEls.forEach((e, i) => {
+      const t = 2.6 + i * .35;
+      tl.to(e.path, { strokeDashoffset: 0, duration: .9, ease: 'power3.out' }, t)
+        .to([e.ring, e.dot], { opacity: 1, duration: .3, ease: 'none' }, t)
+        .to(e.label, { clipPath: 'inset(0 0% 0 0)', duration: .7, ease: 'steps(28)' }, t + .5);
+    });
+
+    tl.add(() => {
+      introDone = true;
+      $('#xh').classList.add('ready');
+      document.body.classList.remove('is-loading');
+      initScroll();
+    });
+  }
+
+  // курсор-дальномер, тёплый свет, подсветка ближайшей выноски, магнитная кнопка
+  if (fine) {
+    const glow = $('.layer--glow');
+    const xhV = $('#xhV'), xhH = $('#xhH'), xhC = $('#xhC'), xhR = $('#xhR');
+    const mx = gsap.quickTo(par, 'x', { duration: 1.4, ease: 'power3' });
+    const my = gsap.quickTo(par, 'y', { duration: 1.4, ease: 'power3' });
+    // в интерьере комната чуть «оглядывается» за курсором
+    const rx = gsap.quickTo('.room-img', 'x', { duration: 1.6, ease: 'power3' });
+    const ry = gsap.quickTo('.room-img', 'y', { duration: 1.6, ease: 'power3' });
+
+    hero.addEventListener('pointerenter', () => hero.classList.add('is-hover'));
+    hero.addEventListener('pointerleave', () => hero.classList.remove('is-hover'));
+    hero.addEventListener('pointermove', e => {
+      const r = hero.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      xhV.style.left = x + 'px'; xhH.style.top = y + 'px';
+      xhC.style.left = x + 'px'; xhC.style.top = y + 'px';
+      xhR.style.left = x + 'px'; xhR.style.top = y + 'px';
+
+      const flying = hero.classList.contains('is-flying');
+      if (!flying) { mx((x / r.width - .5) * -20); my((y / r.height - .5) * -12); }
+      rx((x / r.width - .5) * -28); ry((y / r.height - .5) * -14);
+
+      const ir = glow.getBoundingClientRect();
+      glow.style.setProperty('--mx', ((e.clientX - ir.left) / ir.width * glow.offsetWidth) + 'px');
+      glow.style.setProperty('--my', ((e.clientY - ir.top) / ir.height * glow.offsetHeight) + 'px');
+
+      // координаты в .zoom (с учётом параллакса) → ближайшая выноска
+      const zr = zoom.getBoundingClientRect();
+      const zx = (e.clientX - zr.left) / zr.width * zoom.offsetWidth;
+      const zy = (e.clientY - zr.top) / zr.height * zoom.offsetHeight;
+      const g = geo();
+      let near = null, best = 70;
+      coEls.forEach(el => {
+        const d = Math.hypot(el.x - zx, el.y - zy);
+        el.grp.classList.remove('hot'); el.label.classList.remove('hot');
+        if (d < best) { best = d; near = el; }
+      });
+      if (near && introDone) {
+        near.grp.classList.add('hot'); near.label.classList.add('hot');
+        xhR.textContent = near.text;
+      } else {
+        xhR.textContent = `x ${Math.round((zx - g.ox) / g.k)} · y ${Math.round((zy - g.oy) / g.k)}`;
+      }
+    });
+
+    const cta = $('.cta');
+    const cx = gsap.quickTo(cta, 'x', { duration: .8, ease: 'elastic.out(1,.4)' });
+    const cy = gsap.quickTo(cta, 'y', { duration: .8, ease: 'elastic.out(1,.4)' });
+    cta.addEventListener('pointermove', e => {
+      const r = cta.getBoundingClientRect();
+      cx((e.clientX - r.left - r.width / 2) * .25);
+      cy((e.clientY - r.top - r.height / 2) * .35);
+    });
+    cta.addEventListener('pointerleave', () => { cx(0); cy(0); });
+  }
+
+  // скролл: ЭТАЛОН улетает в шапку → камера летит в окно кв. 24 → интерьер
+  function initScroll() {
+    const fly = { p: 0 };
+    let g = geo();
+    const sizeFor = () => Math.min(18, Math.max(6, (g.W * .8) / (WIN.w * g.k)));
+    let smax = sizeFor();
+
+    // куда лететь слову: в слот логотипа (offset* не зависят от transform)
+    const toLogo = () => ({
+      x: header.offsetLeft + logo.offsetLeft - nameEl.offsetLeft,
+      y: header.offsetTop + logo.offsetTop - nameEl.offsetTop,
+      s: logo.offsetWidth / nameEl.offsetWidth
+    });
+    gsap.set(nameEl, { transformOrigin: '0 0' });
+
+    // сдвиг камеры не даёт краю фото зайти в кадр (важно для окна у края, ?side)
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    const apply = () => {
+      const e = fly.p, s = 1 + (smax - 1) * e;
+      // фон обрезан по блоку .zoom — видимые края фото это пересечение блока и картинки
+      const L = Math.max(0, g.ox), R = Math.min(g.W, g.ox + IMG_W * g.k);
+      const T = Math.max(0, g.oy), B = Math.min(g.H, g.oy + IMG_H * g.k);
+      gsap.set(zoom, {
+        transformOrigin: `${g.px}px ${g.py}px`,
+        scale: s,
+        x: clamp((g.W / 2 - g.px) * e, g.W - g.px - (R - g.px) * s, -g.px - (L - g.px) * s),
+        y: clamp((g.H / 2 - g.py) * e, g.H - g.py - (B - g.py) * s, -g.py - (T - g.py) * s)
+      });
+      const sz = WIN.w * g.k * (1 + e * 1.4);
+      gsap.set(glowEl, { left: g.px - sz / 2, top: g.py - sz / 2, width: sz, height: sz,
+        opacity: Math.min(1, Math.max(0, (e - .35) / .5)) });
+      hero.classList.toggle('is-flying', e > .02);
+    };
+
+    ScrollTrigger.addEventListener('refreshInit', () => { layout(); g = geo(); smax = sizeFor(); });
+
+    const target = coEls.find(e => e.target);
+    const others = coEls.filter(e => e !== target);
+
+    const tl = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=450%', pin: true, scrub: 1, anticipatePin: 1, invalidateOnRefresh: true }
+    });
+
+    tl
+      // слово улетает вверх в шапку и становится логотипом
+      .to(nameEl, { x: () => toLogo().x, y: () => toLogo().y, scale: () => toLogo().s, duration: 1.6, ease: 'power2.inOut' }, 0)
+      .to(nameEl, { opacity: 0, duration: .25 }, 1.4)
+      .to(logo, { opacity: 1, duration: .25 }, 1.4)
+      .to('.center', { yPercent: -40, opacity: 0, duration: 1 }, 0)
+      .to('.facts', { y: 40, opacity: 0, duration: 1 }, 0)
+      .to('.scroll-hint', { opacity: 0, duration: .6 }, 0)
+      .to(others.flatMap(e => [e.path, e.ring, e.dot, e.label]), { opacity: 0, duration: 1 }, .4)
+      .to(target ? [target.path, target.label] : [], { opacity: 0, duration: .8 }, 1.4)
+      .to(target ? [target.ring, target.dot] : [], { opacity: 0, duration: 1 }, 3)
+      .to('.shade', { opacity: 0, duration: 3 }, 1)
+      // полёт в окно
+      .to(fly, { p: 1, duration: 6.2, ease: 'power3.in', onUpdate: apply }, 1.6)
+      // интерьер проступает, когда окно занимает кадр
+      .to(room, { opacity: 1, duration: 1.6 }, 6.6)
+      .fromTo(room, { scale: 1.12 }, { scale: 1, duration: 2.6 }, 6.6)
+      // слой света под курсором сюда не входит: его гасит класс is-flying, иначе инлайн-opacity перебьёт ховер
+      .to('.layer--dusk, .layer--lit, .callouts, .win-glow', { opacity: 0, duration: 1 }, 8)
+      .to({}, { duration: 1.4 }, 8.6); // пауза на интерьере
+  }
+
+  // ждём шрифт слова, иначе размер и базовая линия посчитаются по запасному шрифту
+  const fontReady = document.fonts ? document.fonts.load('400 100px "Old Standard TT"', 'ЭТАЛОН') : Promise.resolve();
+  Promise.race([fontReady, new Promise(r => setTimeout(r, 2000))]).then(boot);
+})();
+</script>
+</body>
+</html>

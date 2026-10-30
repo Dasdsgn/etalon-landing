@@ -1,0 +1,9 @@
+# Публикуем только сайт; исходники, макеты, таблицы и PDF остаются локально
+*
+!.gitignore
+!index.html
+!hero-window.html
+!assets/
+assets/*
+!assets/hero-court-sky.jpg
+!assets/interior-24.jpg
