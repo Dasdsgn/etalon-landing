@@ -85,6 +85,101 @@
   .room-img{position:absolute;inset:-3%;background:url("assets/interior-24.jpg") center center/cover no-repeat;will-change:transform}
   .room::after{content:"";position:absolute;inset:0;pointer-events:none;
     background:linear-gradient(180deg,rgba(10,9,7,.45) 0%,rgba(10,9,7,0) 18%,rgba(10,9,7,0) 80%,rgba(10,9,7,.35) 100%)}
+  /* камера в комнате: опускает взгляд на журнальный стол */
+  .room-cam{position:absolute;inset:0;will-change:transform}
+  /* фон под калькулятором — заранее размытая копия: blur() на 3840 px на лету тормозит */
+  .room-blur{position:absolute;inset:-3%;background:url("assets/interior-24-blur.jpg") center center/cover no-repeat;opacity:0;will-change:opacity}
+  .room-blur::after{content:"";position:absolute;inset:0;background:rgba(15,13,10,.32)}
+
+  /* ---------- блок 02: квиз «Вся сумма до заявки» — лист, который поднимается со стола ---------- */
+  .calc-wrap{position:absolute;inset:0;z-index:9;pointer-events:none}
+  .calc{
+    --c-paper:#EEEBE4;--c-surface:#F6F5F1;--c-ink:#1E2320;--c-ink2:#5A615C;--c-line:#CBC8BE;
+    position:absolute;left:50%;top:calc(50% + 38px);
+    width:min(1120px,calc(100% - 2 * var(--gutter)));height:min(700px,calc(100% - 76px - 32px));
+    display:flex;flex-direction:column;gap:16px;padding:24px 28px;
+    background:var(--c-paper);color:var(--c-ink);border:1px solid var(--c-ink);
+    opacity:0;visibility:hidden;overflow:hidden;will-change:transform,opacity;
+    font-family:'Oswald',system-ui,sans-serif;font-weight:300;font-variant-numeric:tabular-nums}
+  .calc.is-open{pointer-events:auto}
+  :where(.calc) button,:where(.calc) input{font:inherit;color:inherit} /* :where — без веса, чтобы не перебивать .c-next и .c-send */
+  .calc button:focus-visible,.calc input:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+  .calc-head h2{margin:0;font-weight:400;font-size:clamp(22px,2.4vw,34px);letter-spacing:.01em;line-height:1.1}
+  .calc-head p{margin:4px 0 0;font-size:15px;color:var(--c-ink2)}
+  .calc-quiz{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);border-top:1px solid var(--c-ink)}
+
+  .c-ask{padding:22px 32px 4px 0;display:flex;flex-direction:column;gap:18px;min-width:0;min-height:0}
+  .c-ask-top{display:flex;justify-content:space-between;align-items:center;gap:16px}
+  .c-count{font-size:13px;letter-spacing:.04em;color:var(--c-ink2)}
+  .c-ruler{position:relative;width:200px;height:14px;flex:none}
+  .c-ruler::before{content:"";position:absolute;left:0;right:0;top:6px;height:1px;background:var(--c-line)}
+  .c-ruler i{position:absolute;top:6px;left:0;height:1px;background:var(--signal);width:0;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+  .c-ruler b{position:absolute;top:0;width:1px;height:13px;background:var(--c-line)}
+  .c-ruler b.done{background:var(--signal)}
+  .c-step{display:flex;flex-direction:column;gap:16px;min-height:0}
+  .c-step.enter{animation:c-enter .42s cubic-bezier(.2,.7,.2,1)}
+  @keyframes c-enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .c-q{font-size:clamp(26px,2.8vw,40px);font-weight:400;letter-spacing:.005em;line-height:1.08;margin:0}
+  .c-sub{margin:-8px 0 0;color:var(--c-ink2);font-size:15px}
+  .c-opts{display:grid;gap:8px}
+  .c-opt{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 16px;text-align:left;background:var(--c-paper);border:1px solid var(--c-line);padding:12px 16px;cursor:pointer;transition:border-color .2s,background-color .2s}
+  .c-opt:hover{border-color:var(--c-ink)}
+  .c-opt b{font-weight:400;font-size:18px}
+  .c-opt small{grid-column:1;font-size:13px;color:var(--c-ink2)}
+  .c-opt .k{grid-column:2;grid-row:1 / span 2;font-size:12px;color:var(--c-ink2);border:1px solid var(--c-line);width:26px;height:26px;display:grid;place-items:center}
+  .c-opt.sel{background:var(--c-ink);color:var(--c-paper);border-color:var(--c-ink)}
+  .c-opt.sel small,.c-opt.sel .k{color:var(--c-paper);border-color:var(--c-paper);opacity:.8}
+  .c-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:16px}
+  .c-back{background:none;border:0;padding:0;font-size:14px;color:var(--c-ink2);cursor:pointer}
+  .c-back:hover{color:var(--c-ink)}
+  .c-hint{font-size:12px;color:var(--c-ink2)}
+  .c-next{background:var(--c-ink);color:var(--c-paper);border:0;padding:11px 20px;font-size:15px;letter-spacing:.04em;cursor:pointer;transition:background-color .2s}
+  .c-next:hover{background:var(--signal);color:var(--c-ink)}
+  .c-back[hidden],.c-next[hidden]{display:none}
+  .c-form{display:grid;gap:10px}
+  .c-form label{font-size:13px;color:var(--c-ink2)}
+  .c-form input{border:1px solid var(--c-line);background:var(--c-paper);padding:13px 16px;font-size:16px}
+  .c-send{justify-self:start;background:var(--c-ink);color:var(--c-paper);border:0;padding:13px 20px;font-size:15px;letter-spacing:.04em;cursor:pointer}
+  .c-send:hover{background:var(--signal);color:var(--c-ink)}
+  .c-err{color:var(--signal);font-size:13px;min-height:18px}
+
+  .c-sheet{padding:22px 0 4px 32px;border-left:1px solid var(--c-line);display:flex;flex-direction:column;gap:14px;min-width:0;min-height:0}
+  .c-sheet-head{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;letter-spacing:.04em;color:var(--c-ink2)}
+  .c-sheet-head b{font-weight:400;font-size:20px;color:var(--c-ink)}
+  .c-line{display:grid;grid-template-columns:auto minmax(20px,1fr) auto;align-items:baseline;gap:10px;padding-block:8px;border-bottom:1px solid var(--c-line)}
+  .c-line span:first-child{font-size:16px}
+  .c-line small{display:block;font-size:12px;color:var(--c-ink2);margin-top:1px}
+  .c-line .dots{border-bottom:1px dotted var(--c-line);transform:translateY(-4px)}
+  .c-line .v{font-size:16px;white-space:nowrap}
+  .c-line.wait .v{color:var(--c-ink2)}
+  .c-line.fresh .v{color:var(--signal)}
+  .c-total{display:grid;gap:6px;margin-top:auto}
+  .c-lbl{font-size:12px;color:var(--c-ink2);text-transform:uppercase;letter-spacing:.08em}
+  .c-total output{font-size:clamp(30px,3.2vw,46px);font-weight:400;color:var(--c-ink);line-height:1}
+  .c-dimr{position:relative;height:11px;width:0;transition:width .6s cubic-bezier(.2,.7,.2,1)}
+  .c-dimr::before{content:"";position:absolute;left:0;right:0;top:5px;height:1px;background:var(--signal)}
+  .c-dimr::after{content:"";position:absolute;inset:0;border-left:1px solid var(--signal);border-right:1px solid var(--signal)}
+  .c-note{font-size:12px;color:var(--c-ink2)}
+
+  /* невысокий ноутбук: убираем менеджера и план, строки и итог остаются */
+  @media (min-width:861px) and (max-height:760px){ .calc-head p{display:none} .c-line{padding-block:6px} }
+  /* телефон: вопрос во весь лист, от листа сверки — только итог */
+  @media (max-width:860px){
+    .calc{width:calc(100% - 24px);height:calc(100% - 76px - 20px);padding:14px;gap:10px}
+    .calc-head h2{font-size:20px}
+    .calc-head p,.c-sheet-head,.c-lines,.c-note,.c-hint{display:none}
+    .calc-quiz{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+    .c-ask{padding:14px 0 6px;gap:14px}
+    .c-ruler{width:110px}
+    .c-q{font-size:24px}
+    .c-opt{padding:10px 14px}
+    .c-opt b{font-size:16px}
+    .c-sheet{padding:10px 0 0;border-left:0;border-top:1px solid var(--c-line)}
+    .c-total output{font-size:26px}
+  }
+  /* без анимаций — обычным блоком после первого экрана */
+  .calc-wrap.is-static{position:relative;inset:auto;z-index:auto;pointer-events:auto;width:100%;margin-bottom:48px}
+  .is-static .calc{position:relative;left:auto;top:auto;margin:0 auto;opacity:1;visibility:visible;height:auto;min-height:640px;text-align:left}
 
   /* header */
   .header{position:absolute;inset:0 0 auto;z-index:10;height:76px;display:flex;align-items:center;padding:0 var(--gutter)}
@@ -200,7 +295,48 @@
       </div>
       <div class="shade"></div>
     </div>
-    <div class="room" id="room" role="img" aria-label="Гостиная квартиры 24 вечером, в окне — двор дома"><div class="room-img"></div></div>
+    <div class="room" id="room" role="img" aria-label="Гостиная квартиры 24 вечером, в окне — двор дома">
+      <div class="room-cam" id="roomCam"><div class="room-img"></div><div class="room-blur" id="roomBlur"></div></div>
+    </div>
+
+    <!-- блок 02: лист с журнального стола поднимается и становится квизом -->
+    <div class="calc-wrap" id="calcWrap">
+      <section class="calc" id="calc" aria-labelledby="calcT" inert>
+        <header class="calc-head">
+          <h2 id="calcT">Вся сумма до заявки</h2>
+          <p>Квартира, паркинг, кладовая и ремонт — четыре вопроса, итог сразу справа.</p>
+        </header>
+        <div class="calc-quiz">
+          <div class="c-ask">
+            <div class="c-ask-top">
+              <span class="c-count" id="cCount">Вопрос 1 из 4</span>
+              <div class="c-ruler" id="cRuler" aria-hidden="true"><i></i></div>
+            </div>
+            <div class="c-step" id="cStep"></div>
+            <div class="c-foot">
+              <button class="c-back" id="cBack" type="button" hidden>← назад</button>
+              <span class="c-hint" id="cHint">можно выбрать цифрой 1–4</span>
+              <button class="c-next" id="cNext" type="button" hidden>Дальше →</button>
+            </div>
+          </div>
+          <aside class="c-sheet" aria-label="Ваш расчёт">
+            <div class="c-sheet-head"><span>Ваш расчёт</span><span><b id="cPct">0</b> из 4 сверено</span></div>
+            <div class="c-lines">
+              <div class="c-line wait" id="cL0"><span>Квартира<small id="cL0s">выберите тип</small></span><span class="dots"></span><span class="v" id="cL0v">… ₽</span></div>
+              <div class="c-line wait" id="cL1"><span>Паркинг<small id="cL1s">−1 этаж · свободно 14 из 46</small></span><span class="dots"></span><span class="v" id="cL1v">… ₽</span></div>
+              <div class="c-line wait" id="cL2"><span>Кладовая<small id="cL2s">4,8 м² · свободно 11 из 32</small></span><span class="dots"></span><span class="v" id="cL2v">… ₽</span></div>
+              <div class="c-line wait" id="cL3"><span>Отделка<small id="cL3s">предчистовая или под ключ</small></span><span class="dots"></span><span class="v" id="cL3v">… ₽</span></div>
+            </div>
+            <div class="c-total">
+              <span class="c-lbl">Итого до заявки · цены на 24.10.2026</span>
+              <output id="cTotal" aria-live="polite">… ₽</output>
+              <div class="c-dimr" id="cDimr"></div>
+              <span class="c-note">Доплаты и порядок расчётов — в регламенте застройщика.</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </div>
     <div class="grain" aria-hidden="true"></div>
 
     <header class="header" id="header">
@@ -246,7 +382,7 @@
   </div>
 </section>
 
-<section class="next"><p>Здесь начнётся калькулятор</p><small class="note">Учебный проект. Объект, цены и контакты вымышлены.</small></section>
+<section class="next" id="next"><p>Дальше — локация и планировки</p><small class="note">Учебный проект. Объект, цены и контакты вымышлены.</small></section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -413,6 +549,10 @@
       $('#xh').classList.add('ready');
       document.body.classList.remove('is-loading');
       introDone = true;
+      // без анимаций квиз — обычный блок перед следующим разделом
+      calcWrap.classList.add('is-static');
+      $('#next').before(calcWrap);
+      calc.inert = false; calcStatic = true;
       return;
     }
 
@@ -583,8 +723,28 @@
 
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=450%', pin: true, scrub: .5, anticipatePin: 1, invalidateOnRefresh: true }
+      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=690%', pin: true, scrub: .5, anticipatePin: 1, invalidateOnRefresh: true },
+      // квиз кликабелен, только когда лист полностью поднялся
+      onUpdate: () => {
+        const open = tl.time() >= 13.6;
+        if (open !== calcOpen) { calcOpen = open; calc.classList.toggle('is-open', open); calc.inert = !open; }
+      }
     });
+
+    // стол в кадре интерьера (доли картинки 3840×2143) и куда лечь листу; .room-img — cover с inset −3%
+    const IRW = 3840, IRH = 2143, TABLE = { x: .49, y: .755, w: .22 }, ZOOM = 1.9;
+    const tablePt = () => {
+      const W = hero.clientWidth, H = hero.clientHeight, BW = W * 1.06, BH = H * 1.06;
+      const k = Math.max(BW / IRW, BH / IRH), iw = IRW * k, ih = IRH * k;
+      const ox = -.03 * W + (BW - iw) / 2, oy = -.03 * H + (BH - ih) / 2;
+      return { x: ox + TABLE.x * iw, y: oy + TABLE.y * ih, tw: TABLE.w * iw * ZOOM, W, H };
+    };
+    // лежащий лист: в центре столешницы, шириной ~половина стола; центр .calc — (50%, 50% + 38px)
+    const lie = () => {
+      const t = tablePt();
+      return { x: t.x - t.W / 2, y: t.y - (t.H / 2 + 38), s: Math.min(t.tw * .5, t.W * .6) / calc.offsetWidth };
+    };
+    gsap.set(calc, { xPercent: -50, yPercent: -50, transformPerspective: 900 });
 
     // прозрачность, а не autoAlpha: visibility:hidden выкидывает растр, и при обратном скролле всё рисуется заново — рывки.
     // autoAlpha — только для крупного интерьера и слоёв, полностью закрытых им
@@ -607,8 +767,154 @@
       .fromTo(room, { scale: 1.12 }, { scale: 1, duration: 2.6 }, 6.6)
       // слой света под курсором сюда не входит: его гасит класс is-flying, иначе инлайн-opacity перебьёт ховер
       .to('.layer--lit, .callouts, .win-glow', { autoAlpha: 0, duration: 1 }, 8) // крупный план не трогаем: его ведёт apply(), а сверху уже интерьер
-      .to({}, { duration: 1.4 }, 8.6); // пауза на интерьере
+      // пауза на интерьере, потом взгляд опускается на журнальный стол
+      .to(roomCam, { scale: ZOOM, transformOrigin: () => { const t = tablePt(); return `${t.x}px ${t.y}px`; }, duration: 1.6, ease: 'power2.inOut' }, 9.8)
+      // на столе — лист с расчётом
+      .fromTo(calc, { autoAlpha: 0, x: () => lie().x, y: () => lie().y - 30, scale: () => lie().s, rotationX: 60 },
+                    { autoAlpha: 1, y: () => lie().y, duration: .6, ease: 'power2.out', immediateRender: false }, 10.9)
+      // лист поднимается со стола, разворачивается к зрителю и становится квизом; комната уходит в размытие
+      .to(calc, { x: 0, y: 0, scale: 1, rotationX: 0, duration: 2, ease: 'power3.inOut' }, 11.7)
+      .to('#roomBlur', { opacity: 1, duration: 1.7 }, 11.7)
+      .to({}, { duration: 1.5 }, 13.7); // пауза: квиз в руках
   }
+
+  // ---------- блок 02: механика квиза из «Эталон: полная сумма по шагам» ----------
+  const calc = $('#calc'), calcWrap = $('#calcWrap'), roomCam = $('#roomCam');
+  let calcOpen = false, calcStatic = false;
+  (function initQuiz() {
+    const FLATS = [
+      { key: 'studio', name: 'Студия', area: 24.7, ppm: 498000 },
+      { key: 'one', name: 'Однушка', area: 38.2, ppm: 472000 },
+      { key: 'two', name: 'Двушка', area: 58.4, ppm: 447000 },
+      { key: 'three', name: 'Трёшка', area: 81.6, ppm: 431000 }
+    ];
+    const PARKING = 4180000, STORAGE = 907200, TURNKEY = 41500;
+    const rub = n => Math.round(n).toLocaleString('ru-RU') + ' ₽';
+    const num = n => String(n).replace('.', ',');
+    const price = f => Math.round(f.area * 10 * f.ppm / 10);
+    const STEPS = [
+      { q: 'Какая квартира нужна?', sub: 'Вы смотрели двушку — можно выбрать другую. Цена за метр уже в строке.',
+        opts: FLATS.map(f => ({ label: f.name, note: `${num(f.area)} м² × ${f.ppm.toLocaleString('ru-RU')} ₽ = ${rub(price(f))}`, val: f.key })) },
+      { q: 'Нужно машиноместо?', sub: 'Подземный паркинг, −1 этаж. Свободно 14 мест из 46.',
+        opts: [{ label: 'Нужно', note: rub(PARKING), val: true }, { label: 'Не нужно', note: '0 ₽', val: false }] },
+      { q: 'Нужна кладовая?', sub: '4,8 м² на −1 этаже. Свободно 11 из 32.',
+        opts: [{ label: 'Нужна', note: rub(STORAGE), val: true }, { label: 'Не нужна', note: '0 ₽', val: false }] },
+      { q: 'Как с ремонтом?', sub: 'Под ключ — от застройщика за доплату, срок ремонта +3 месяца после ключей.',
+        opts: [{ label: 'Предчистовая — ремонт делаю сам', note: 'входит в цену квартиры', val: 'pre' },
+               { label: 'Под ключ — ремонт от застройщика', note: '41 500 ₽ за м²', val: 'turn' }] }
+    ];
+
+    const answers = ['two', null, null, null]; // двушка — та самая кв. 24, в которой человек только что «был»
+    let step = 0, shown = 0;
+    const g = id => document.getElementById(id);
+    const wrap = g('cStep'), countEl = g('cCount'), ruler = g('cRuler'), back = g('cBack'), next = g('cNext'), hint = g('cHint');
+    for (let i = 0; i <= 4; i++) { const b = document.createElement('b'); b.style.left = (i * 25) + '%'; ruler.appendChild(b); }
+    const flat = () => FLATS.find(f => f.key === answers[0]);
+
+    function renderStep() {
+      wrap.classList.remove('enter'); void wrap.offsetWidth; wrap.classList.add('enter');
+      back.hidden = step === 0;
+      wrap.innerHTML = '';
+      if (step < 4) {
+        const s = STEPS[step];
+        countEl.textContent = `Вопрос ${step + 1} из 4`;
+        hint.textContent = `можно выбрать цифрой 1–${s.opts.length}`;
+        next.hidden = answers[step] === null;
+        const h = document.createElement('h3'); h.className = 'c-q'; h.textContent = s.q;
+        const p = document.createElement('p'); p.className = 'c-sub'; p.textContent = s.sub;
+        const box = document.createElement('div'); box.className = 'c-opts'; box.setAttribute('role', 'group'); box.setAttribute('aria-label', s.q);
+        s.opts.forEach((o, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button'; btn.className = 'c-opt' + (answers[step] === o.val ? ' sel' : '');
+          btn.innerHTML = `<b></b><small></small><span class="k">${idx + 1}</span>`;
+          btn.querySelector('b').textContent = o.label;
+          btn.querySelector('small').textContent = o.note;
+          btn.addEventListener('click', () => pick(o.val, btn));
+          box.appendChild(btn);
+        });
+        wrap.append(h, p, box);
+      } else {
+        countEl.textContent = 'Готово · 4 из 4';
+        hint.textContent = 'расчёт придёт письмом';
+        next.hidden = true;
+        wrap.innerHTML =
+          '<h3 class="c-q">Сумма собрана. Отправить расчёт на почту?</h3>' +
+          '<p class="c-sub">В письме будут все строки и цены на 24.10.2026.</p>' +
+          '<form class="c-form" id="cForm" novalidate><label for="cMail">Почта</label>' +
+          '<input id="cMail" type="email" placeholder="name@mail.ru" autocomplete="email">' +
+          '<span class="c-err" id="cErr"></span><button class="c-send" type="submit">Отправить расчёт на почту</button></form>';
+        g('cForm').addEventListener('submit', e => {
+          e.preventDefault();
+          const v = g('cMail').value.trim();
+          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { g('cErr').textContent = 'Проверьте адрес: в нём нет «@» или домена.'; return; }
+          // демо: никуда не отправляем; адрес выводим текстом, не HTML
+          const h = document.createElement('h3'); h.className = 'c-q'; h.textContent = `Расчёт готов к отправке на ${v}`;
+          const p = document.createElement('p'); p.className = 'c-sub'; p.textContent = 'Демо: письмо не отправляется — это учебный проект.';
+          wrap.replaceChildren(h, p);
+        });
+      }
+      updateRuler();
+    }
+
+    function pick(val, btn) {
+      answers[step] = val;
+      wrap.querySelectorAll('.c-opt').forEach(o => o.classList.remove('sel'));
+      btn.classList.add('sel');
+      updateSheet(step);
+      setTimeout(() => { if (step < 4) { step++; renderStep(); } }, 380);
+    }
+
+    function updateRuler() {
+      const done = answers.filter(a => a !== null).length;
+      ruler.querySelector('i').style.width = (done * 25) + '%';
+      ruler.querySelectorAll('b').forEach((b, i) => b.classList.toggle('done', done > 0 && i <= done));
+      g('cPct').textContent = done;
+    }
+
+    function setLine(i, val, sub, fresh) {
+      const l = g('cL' + i);
+      l.classList.toggle('wait', val === null);
+      g(`cL${i}v`).textContent = val === null ? '… ₽' : val;
+      if (sub) g(`cL${i}s`).textContent = sub;
+      if (fresh) { l.classList.add('fresh'); setTimeout(() => l.classList.remove('fresh'), 900); }
+    }
+
+    function animateTotal(to) {
+      const from = shown, t0 = performance.now(), dur = 700;
+      const tick = t => {
+        const k = reduce ? 1 : Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        shown = from + (to - from) * e;
+        g('cTotal').textContent = rub(shown);
+        if (k < 1) requestAnimationFrame(tick); else shown = to;
+      };
+      tick(t0);
+    }
+
+    function updateSheet(changed) {
+      const f = flat(); let sum = 0;
+      if (f) { sum += price(f); setLine(0, rub(price(f)), `${num(f.area)} м² × ${f.ppm.toLocaleString('ru-RU')} ₽`, changed === 0); }
+      if (answers[1] !== null) { const v = answers[1] ? PARKING : 0; sum += v; setLine(1, rub(v), answers[1] ? '−1 этаж · свободно 14 из 46' : 'не нужно', changed === 1); }
+      if (answers[2] !== null) { const v = answers[2] ? STORAGE : 0; sum += v; setLine(2, rub(v), answers[2] ? '4,8 м² · свободно 11 из 32' : 'не нужна', changed === 2); }
+      if (answers[3] !== null) {
+        const v = answers[3] === 'turn' && f ? Math.round(f.area * TURNKEY) : 0; sum += v;
+        setLine(3, rub(v), answers[3] === 'turn' ? (f ? `${num(f.area)} м² × 41 500 ₽ · +3 мес` : 'под ключ') : 'предчистовая · входит в цену', changed === 3);
+      }
+      animateTotal(sum);
+      g('cDimr').style.width = Math.min(100, sum / 45000000 * 100) + '%';
+      updateRuler();
+    }
+
+    back.addEventListener('click', () => { if (step > 0) { step--; renderStep(); } });
+    next.addEventListener('click', () => { if (step < 4 && answers[step] !== null) { step++; renderStep(); } });
+    document.addEventListener('keydown', e => {
+      if (!(calcOpen || calcStatic) || step > 3 || e.target.tagName === 'INPUT') return;
+      const n = parseInt(e.key, 10), btns = wrap.querySelectorAll('.c-opt');
+      if (n >= 1 && n <= btns.length) btns[n - 1].click();
+    });
+
+    renderStep();
+    updateSheet(-1);
+  })();
 
   // ждём шрифт слова, иначе размер и базовая линия посчитаются по запасному шрифту
   const fontReady = document.fonts ? document.fonts.load('400 100px "Old Standard TT"', 'ЭТАЛОН') : Promise.resolve();
