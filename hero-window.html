@@ -50,6 +50,10 @@
             mask-image:radial-gradient(circle 240px at var(--mx,50%) var(--my,50%),rgba(0,0,0,.6),transparent 70%);
   }
   .hero.is-hover .layer--glow{opacity:1}
+  /* чёткий крупный план вокруг кв. 24 (дорисовка того же куска фасада в 4K): лежит на своём месте в фото,
+     проявляется на зуме ×2.5–3, когда фасад начинает мылиться */
+  .layer-detail{position:absolute;left:0;top:0;opacity:0;pointer-events:none;will-change:opacity;
+    background:url("assets/window-closeup.jpg") 0 0/100% 100% no-repeat}
   .hero.is-flying .layer--glow{opacity:0} /* без visibility: иначе при возврате слой растеризуется заново — рывок */
   /* после вступления маска и тёмный стартовый слой не нужны — снимаем, чтобы зум не таскал их */
   .hero.is-ready .layer--lit{-webkit-mask-image:none;mask-image:none}
@@ -189,6 +193,7 @@
           <div class="layer layer--dusk"></div>
           <div class="layer layer--lit"></div>
           <div class="layer layer--glow"></div>
+          <div class="layer-detail" id="detail" aria-hidden="true"></div>
           <div class="callouts" id="callouts"><svg id="coSvg" aria-hidden="true"></svg></div>
           <div class="win-glow" id="winGlow"></div>
         </div>
@@ -264,13 +269,14 @@
   const nameEl = $('#name'), ruler = $('#ruler'), counter = $('#counter');
   const chars = $$('.name .ch > span');
   const lit = $('.layer--lit');
-  const zoom = $('.zoom'), par = $('.par'), glowEl = $('#winGlow'), room = $('#room');
+  const zoom = $('.zoom'), par = $('.par'), glowEl = $('#winGlow'), room = $('#room'), detailEl = $('#detail');
   const coWrap = $('#callouts'), coSvg = $('#coSvg'), facts = $('#facts');
 
   // фото 2000×1125; точки выносок и окно кв. 24 — в координатах фото
   // ?side — для сравнения: влёт в боковое окно; по умолчанию — горящее окно у центральной оси
   const SIDE = new URLSearchParams(location.search).has('side');
   const IMG_W = 2000, IMG_H = 1125;
+  const DETAIL = { x: 650, y: 380, w: 880, h: 495 }; // участок фото под assets/window-closeup.jpg
   const WIN = SIDE ? { x: 1914, y: 462, w: 142 } : { x: 1116, y: 661, w: 46 };
   const CALLOUTS = SIDE ? [
     { x: 1120, y: 545, ex: 1420, ey: 195, text: '6 этажей · 42 квартиры' },
@@ -558,12 +564,15 @@
       });
       // свечение только масштабируется: менять width/height каждый кадр — это пересчёт раскладки
       gsap.set(glowEl, { scale: 1 + e * 1.4, opacity: Math.min(1, Math.max(0, (e - .35) / .5)) });
+      if (!SIDE) detailEl.style.opacity = clamp((s - 2.5) / .5, 0, 1);
       const fl = e > .02;
       if (fl !== hero.classList.contains('is-flying')) hero.classList.toggle('is-flying', fl);
     };
     const placeGlow = () => {
       const sz = WIN.w * g.k;
       gsap.set(glowEl, { width: sz, height: sz, x: g.px - sz / 2, y: g.py - sz / 2 });
+      // крупный план — на его участок фото (координаты 2000×1125); в варианте ?side не нужен
+      gsap.set(detailEl, SIDE ? { display: 'none' } : { x: g.ox + DETAIL.x * g.k, y: g.oy + DETAIL.y * g.k, width: DETAIL.w * g.k, height: DETAIL.h * g.k });
     };
     placeGlow();
 
@@ -597,7 +606,7 @@
       .to(room, { autoAlpha: 1, duration: 1.6 }, 6.6)
       .fromTo(room, { scale: 1.12 }, { scale: 1, duration: 2.6 }, 6.6)
       // слой света под курсором сюда не входит: его гасит класс is-flying, иначе инлайн-opacity перебьёт ховер
-      .to('.layer--lit, .callouts, .win-glow', { autoAlpha: 0, duration: 1 }, 8)
+      .to('.layer--lit, .callouts, .win-glow', { autoAlpha: 0, duration: 1 }, 8) // крупный план не трогаем: его ведёт apply(), а сверху уже интерьер
       .to({}, { duration: 1.4 }, 8.6); // пауза на интерьере
   }
 
