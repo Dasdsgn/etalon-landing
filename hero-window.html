@@ -269,11 +269,12 @@
   /* своё фото (больше неба, дом ниже) — светлое и запечённо-затемнённое, как в А */
   .v-b .layer{background-image:url("assets/hero-b-light.jpg")}
   .v-b .layer--lit{background-image:url("assets/hero-b-dark.jpg")}
+  .v-b .layer-detail{background-image:url("assets/window-closeup-b.jpg")}
   .v-b .name,.v-b .logo-slot{color:#fff} /* и в шапке логотип остаётся белым */
   /* в Б без оранжевой линейки: прячем, но не убираем — от её высоты во вступлении раскрывается фото */
   .v-b .ruler,.v-b .tick,.v-b .counter{visibility:hidden}
   .v-b .center{top:0;bottom:0;transform:none;pointer-events:none}
-  .v-b .center .title{position:absolute;left:var(--gutter);right:var(--gutter);top:21.5%;font-size:clamp(22px,2.9vw,46px); /* мельче, чтобы не касаться ЭТАЛОН */transform:translateY(-50%)}
+  .v-b .center .title{position:absolute;left:var(--gutter);right:var(--gutter);top:21.5%;font-size:clamp(18px,2.2vw,34px); /* точное место ставит fitName — равный отступ до ЭТАЛОН */transform:translateY(-50%)}
   .v-b .cta-wrap{position:absolute;left:0;right:0;top:49.7%;transform:translateY(-50%);margin:0;pointer-events:auto} /* в небе над крышей (крыша ~55%) */
   .v-b .facts{bottom:3.5%;display:flex;justify-content:space-between;align-items:baseline}
   .v-b .fact{padding:0;background:none;backdrop-filter:none}
@@ -450,7 +451,8 @@
   $$('.ab a').forEach(a => a.setAttribute('aria-current', String((a.id === 'abB') === VB)));
   addEventListener('scroll', () => $('.ab').classList.toggle('is-away', scrollY > innerHeight * .3), { passive: true });
   const IMG_W = 2000, IMG_H = VB ? 1178 : 1125; // у фото Б другая пропорция (5760×3392)
-  const DETAIL = { x: 650, y: 380, w: 880, h: 495 }; // участок фото под assets/window-closeup.jpg
+  // участок фото под чёткий крупный план (дорисовка того же куска в 4K): А — window-closeup.jpg, Б — window-closeup-b.jpg
+  const DETAIL = VB ? { x: 680, y: 526, w: 860, h: 484 } : { x: 650, y: 380, w: 880, h: 495 };
   // горящее окно справа от центральной оси, второй ряд — в координатах своего фото
   const WIN = SIDE ? { x: 1914, y: 462, w: 142 } : VB ? { x: 1155, y: 851, w: 61 } : { x: 1116, y: 661, w: 46 };
   const WIN_LABEL = 'Двушка 58,4 м² — заглянем внутрь ↓';
@@ -527,6 +529,24 @@
     // факты — над верхом букв
     const capTop = nameEl.offsetTop + nameEl.offsetHeight - baseline - size * .72;
     facts.style.bottom = VB ? '' : (hero.clientHeight - capTop + 22) + 'px'; // в Б факты стоят у низа (CSS)
+
+    // Б: заголовок над словом и кнопка под ним — на одинаковом расстоянии от краёв букв ЭТАЛОН
+    if (VB) {
+      const H = hero.clientHeight, baseY = H * .42, asc = m.actualBoundingBoxAscent;
+      const gap = asc * .32, inkTop = baseY - asc;
+      // заголовок: низ его букв (с хвостом «у») — на gap выше верха букв ЭТАЛОН
+      const tfs = parseFloat(getComputedStyle(title).fontSize), tc = document.createElement('canvas').getContext('2d');
+      tc.font = `200 ${tfs}px Oswald`;
+      const tm = tc.measureText(title.textContent), lh = tfs * 1.1;
+      const tBase = (lh - tm.fontBoundingBoxAscent - tm.fontBoundingBoxDescent) / 2 + tm.fontBoundingBoxAscent;
+      title.style.transform = 'none';
+      title.style.top = (inkTop - gap - tBase - tm.actualBoundingBoxDescent) + 'px';
+      // кнопка: её верх (кружок со стрелкой) — на gap ниже базовой линии
+      const wrap = $('.cta-wrap'), dot = $('.cta-dot');
+      wrap.style.transform = 'none'; wrap.style.top = '0px';
+      const dotOff = dot.getBoundingClientRect().top - wrap.getBoundingClientRect().top;
+      wrap.style.top = (baseY + gap - dotOff) + 'px';
+    }
   }
 
   /* Выноски: создаются один раз (на них ссылаются анимации), при ресайзе только переставляются.
@@ -752,15 +772,15 @@
       });
       // свечение только масштабируется: менять width/height каждый кадр — это пересчёт раскладки
       gsap.set(glowEl, { scale: 1 + e * 1.4, opacity: Math.min(1, Math.max(0, (e - .35) / .5)) });
-      if (!SIDE && !VB) detailEl.style.opacity = clamp((s - 2.5) / .5, 0, 1);
+      if (!SIDE) detailEl.style.opacity = clamp((s - 2.5) / .5, 0, 1);
       const fl = e > .02;
       if (fl !== hero.classList.contains('is-flying')) hero.classList.toggle('is-flying', fl);
     };
     const placeGlow = () => {
       const sz = WIN.w * g.k;
       gsap.set(glowEl, { width: sz, height: sz, x: g.px - sz / 2, y: g.py - sz / 2 });
-      // крупный план — на его участок фото А (координаты 2000×1125); в ?side и в Б (другое фото) не нужен
-      gsap.set(detailEl, SIDE || VB ? { display: 'none' } : { x: g.ox + DETAIL.x * g.k, y: g.oy + DETAIL.y * g.k, width: DETAIL.w * g.k, height: DETAIL.h * g.k });
+      // крупный план — на свой участок фото; в ?side не нужен
+      gsap.set(detailEl, SIDE ? { display: 'none' } : { x: g.ox + DETAIL.x * g.k, y: g.oy + DETAIL.y * g.k, width: DETAIL.w * g.k, height: DETAIL.h * g.k });
     };
     placeGlow();
 
