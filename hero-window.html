@@ -33,29 +33,33 @@
   .par{position:absolute;inset:0;will-change:transform}
   .zoom{position:absolute;inset:0;will-change:transform}
   .layer{position:absolute;inset:0;background:url("assets/hero-court-sky.jpg") center center/cover no-repeat}
-  /* итоговое затемнение — как на референсе; «dusk» — стартовое, ещё темнее */
+  /* итоговое затемнение — как на референсе — запечено в hero-court-dark.jpg (CSS-фильтр под зумом ×18 тормозил);
+     «dusk» — стартовое, ещё темнее, живёт только во вступлении */
   .layer--dusk{filter:brightness(.26) saturate(.5) contrast(1.05)}
   .layer--lit{
     --r:0%;
-    filter:brightness(.56) saturate(.92) contrast(1.06);
+    background-image:url("assets/hero-court-dark.jpg");
     -webkit-mask-image:radial-gradient(circle at 50% 62%,#000 var(--r),transparent calc(var(--r) + 18%));
             mask-image:radial-gradient(circle at 50% 62%,#000 var(--r),transparent calc(var(--r) + 18%));
   }
   /* тёплый свет под курсором */
+  /* светлый оригинал проступает сквозь мягкую маску — без filter и mix-blend-mode, они тормозили обратный скролл */
   .layer--glow{
-    filter:brightness(1.05) saturate(1.1);
-    mix-blend-mode:screen;opacity:0;transition:opacity .6s;
+    opacity:0;transition:opacity .6s;
     -webkit-mask-image:radial-gradient(circle 240px at var(--mx,50%) var(--my,50%),rgba(0,0,0,.6),transparent 70%);
             mask-image:radial-gradient(circle 240px at var(--mx,50%) var(--my,50%),rgba(0,0,0,.6),transparent 70%);
   }
   .hero.is-hover .layer--glow{opacity:1}
-  .hero.is-flying .layer--glow{opacity:0}
-  .win-glow{position:absolute;width:0;height:0;border-radius:50%;pointer-events:none;opacity:0;
-    background:radial-gradient(circle,rgba(255,206,140,1) 0%,rgba(255,176,96,.8) 35%,rgba(255,150,70,0) 70%);
-    mix-blend-mode:screen}
+  .hero.is-flying .layer--glow{opacity:0} /* без visibility: иначе при возврате слой растеризуется заново — рывок */
+  /* после вступления маска и тёмный стартовый слой не нужны — снимаем, чтобы зум не таскал их */
+  .hero.is-ready .layer--lit{-webkit-mask-image:none;mask-image:none}
+  .hero.is-ready .layer--dusk{display:none}
+  /* без mix-blend-mode: смешивание на всю площадь под зумом — самое дорогое в кадре */
+  .win-glow{position:absolute;left:0;top:0;border-radius:50%;pointer-events:none;opacity:0;will-change:transform,opacity;
+    background:radial-gradient(circle,rgba(255,214,160,.95) 0%,rgba(255,180,105,.7) 35%,rgba(255,150,70,0) 70%)}
 
   /* выноски: линия с изломом, точка в кольце, плашка «печатается» */
-  .callouts{position:absolute;inset:0;pointer-events:none}
+  .callouts{position:absolute;inset:0;pointer-events:none;will-change:opacity}
   .callouts svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
   .co-path{fill:none;stroke:var(--signal);stroke-width:1}
   .co-dot{fill:var(--signal);opacity:0}
@@ -73,7 +77,7 @@
   @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-4%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
 
   /* интерьер кв. 24: гостиная, в окне — наш же двор */
-  .room{position:absolute;inset:0;z-index:5;opacity:0;pointer-events:none;overflow:hidden;background:var(--night)}
+  .room{position:absolute;inset:0;z-index:5;opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;background:var(--night)}
   .room-img{position:absolute;inset:-3%;background:url("assets/interior-24.jpg") center center/cover no-repeat;will-change:transform}
   .room::after{content:"";position:absolute;inset:0;pointer-events:none;
     background:linear-gradient(180deg,rgba(10,9,7,.45) 0%,rgba(10,9,7,0) 18%,rgba(10,9,7,0) 80%,rgba(10,9,7,.35) 100%)}
@@ -460,6 +464,7 @@
 
     tl.add(() => {
       introDone = true;
+      hero.classList.add('is-ready');
       $('#xh').classList.add('ready');
       document.body.classList.remove('is-loading');
       initScroll();
@@ -551,22 +556,29 @@
         x: clamp((g.W / 2 - g.px) * e, g.W - g.px - (R - g.px) * s, -g.px - (L - g.px) * s),
         y: clamp((g.H / 2 - g.py) * e, g.H - g.py - (B - g.py) * s, -g.py - (T - g.py) * s)
       });
-      const sz = WIN.w * g.k * (1 + e * 1.4);
-      gsap.set(glowEl, { left: g.px - sz / 2, top: g.py - sz / 2, width: sz, height: sz,
-        opacity: Math.min(1, Math.max(0, (e - .35) / .5)) });
-      hero.classList.toggle('is-flying', e > .02);
+      // свечение только масштабируется: менять width/height каждый кадр — это пересчёт раскладки
+      gsap.set(glowEl, { scale: 1 + e * 1.4, opacity: Math.min(1, Math.max(0, (e - .35) / .5)) });
+      const fl = e > .02;
+      if (fl !== hero.classList.contains('is-flying')) hero.classList.toggle('is-flying', fl);
     };
+    const placeGlow = () => {
+      const sz = WIN.w * g.k;
+      gsap.set(glowEl, { width: sz, height: sz, x: g.px - sz / 2, y: g.py - sz / 2 });
+    };
+    placeGlow();
 
-    ScrollTrigger.addEventListener('refreshInit', () => { layout(); g = geo(); smax = sizeFor(); });
+    ScrollTrigger.addEventListener('refreshInit', () => { layout(); g = geo(); smax = sizeFor(); placeGlow(); });
 
     const target = coEls.find(e => e.target);
     const others = coEls.filter(e => e !== target);
 
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=450%', pin: true, scrub: 1, anticipatePin: 1, invalidateOnRefresh: true }
+      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=450%', pin: true, scrub: .5, anticipatePin: 1, invalidateOnRefresh: true }
     });
 
+    // прозрачность, а не autoAlpha: visibility:hidden выкидывает растр, и при обратном скролле всё рисуется заново — рывки.
+    // autoAlpha — только для крупного интерьера и слоёв, полностью закрытых им
     tl
       // слово улетает вверх в шапку и становится логотипом
       .to(nameEl, { x: () => toLogo().x, y: () => toLogo().y, scale: () => toLogo().s, duration: 1.6, ease: 'power2.inOut' }, 0)
@@ -582,10 +594,10 @@
       // полёт в окно
       .to(fly, { p: 1, duration: 6.2, ease: 'power3.in', onUpdate: apply }, 1.6)
       // интерьер проступает, когда окно занимает кадр
-      .to(room, { opacity: 1, duration: 1.6 }, 6.6)
+      .to(room, { autoAlpha: 1, duration: 1.6 }, 6.6)
       .fromTo(room, { scale: 1.12 }, { scale: 1, duration: 2.6 }, 6.6)
       // слой света под курсором сюда не входит: его гасит класс is-flying, иначе инлайн-opacity перебьёт ховер
-      .to('.layer--dusk, .layer--lit, .callouts, .win-glow', { opacity: 0, duration: 1 }, 8)
+      .to('.layer--lit, .callouts, .win-glow', { autoAlpha: 0, duration: 1 }, 8)
       .to({}, { duration: 1.4 }, 8.6); // пауза на интерьере
   }
 
