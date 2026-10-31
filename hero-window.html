@@ -266,16 +266,13 @@
   .next .note{font-size:12px;letter-spacing:.06em;color:#555C57}
 
   /* ---------- вариант Б (?v=b): ЭТАЛОН в небе по центру, дом ниже, факты текстом внизу ---------- */
-  /* фото опущено на 9% высоты; полосу сверху закрывает небо в цвет верхнего края каждого слоя
-     (у dusk тот же фильтр действует и на ::before, поэтому во вступлении шва тоже нет) */
-  .v-b .layer{top:9%;bottom:-9%}
-  .v-b .layer::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:9.9%;
-    background:linear-gradient(180deg,rgb(95,138,188),rgb(111,151,196))}
-  .v-b .layer--lit::before{background:linear-gradient(180deg,rgb(45,70,99),rgb(60,82,107))}
+  /* своё фото (больше неба, дом ниже) — светлое и запечённо-затемнённое, как в А */
+  .v-b .layer{background-image:url("assets/hero-b-light.jpg")}
+  .v-b .layer--lit{background-image:url("assets/hero-b-dark.jpg")}
   .v-b .name{color:#fff}
   .v-b .center{top:0;bottom:0;transform:none;pointer-events:none}
-  .v-b .center .title{position:absolute;left:var(--gutter);right:var(--gutter);top:19.5%;transform:translateY(-50%)}
-  .v-b .cta-wrap{position:absolute;left:0;right:0;top:50%;margin:0;pointer-events:auto}
+  .v-b .center .title{position:absolute;left:var(--gutter);right:var(--gutter);top:23%;transform:translateY(-50%)}
+  .v-b .cta-wrap{position:absolute;left:0;right:0;top:49.7%;transform:translateY(-50%);margin:0;pointer-events:auto} /* в небе над крышей (крыша ~55%) */
   .v-b .facts{bottom:3.5%;display:flex;justify-content:space-between;align-items:baseline}
   .v-b .fact{padding:0;background:none;backdrop-filter:none}
   .v-b .fact:nth-child(3){order:-1} /* «Ключи» слева, «Цена котлована» справа */
@@ -450,25 +447,30 @@
   document.documentElement.classList.toggle('v-b', VB);
   $$('.ab a').forEach(a => a.setAttribute('aria-current', String((a.id === 'abB') === VB)));
   addEventListener('scroll', () => $('.ab').classList.toggle('is-away', scrollY > innerHeight * .3), { passive: true });
-  const IMG_W = 2000, IMG_H = 1125;
+  const IMG_W = 2000, IMG_H = VB ? 1178 : 1125; // у фото Б другая пропорция (5760×3392)
   const DETAIL = { x: 650, y: 380, w: 880, h: 495 }; // участок фото под assets/window-closeup.jpg
-  const WIN = SIDE ? { x: 1914, y: 462, w: 142 } : { x: 1116, y: 661, w: 46 };
+  // горящее окно справа от центральной оси, второй ряд — в координатах своего фото
+  const WIN = SIDE ? { x: 1914, y: 462, w: 142 } : VB ? { x: 1155, y: 851, w: 61 } : { x: 1116, y: 661, w: 46 };
+  const WIN_LABEL = 'Двушка 58,4 м² — заглянем внутрь ↓';
   const CALLOUTS = (SIDE ? [
     { x: 1120, y: 545, ex: 1420, ey: 195, text: '6 этажей · 42 квартиры' },
     { x: 425,  y: 440, ex: 540,  ey: 195, text: 'балконы 1,6 м · окна в пол', sm: true },
-    { x: 1914, y: 462, ex: 1820, ey: 330, text: '', target: true, sm: true }
+    { x: 1914, y: 462, ex: 1820, ey: 330, text: WIN_LABEL, target: true, sm: true }
+  ] : VB ? [
+    // в Б небо отдано слову ЭТАЛОН — только метка окна, на фасаде
+    { x: 1155, y: 851, ex: 1320, ey: 790, text: WIN_LABEL, target: true, sm: true }
   ] : [
     { x: 1240, y: 525, ex: 1380, ey: 195, m: { x: 1000, y: 520, ex: 1000, ey: 455 }, text: '6 этажей · 42 квартиры' },
     { x: 425,  y: 440, ex: 540,  ey: 195, text: 'балконы 1,6 м · окна в пол', sm: true },
-    { x: 1116, y: 661, ex: 1300, ey: 470, text: '', target: true, sm: true }
-  ]).filter(c => !VB || c.target); // в Б небо отдано слову ЭТАЛОН — инфо-выноски не ставим
+    { x: 1116, y: 661, ex: 1300, ey: 470, text: WIN_LABEL, target: true, sm: true }
+  ]);
 
   let introDone = false, coEls = [], baseline = 0;
 
   function geo() {
     const W = zoom.offsetWidth, H = zoom.offsetHeight;
     const k = Math.max(W / IMG_W, H / IMG_H);
-    const ox = (W - IMG_W * k) / 2, oy = (H - IMG_H * k) / 2 + (VB ? H * .09 : 0); // в Б фото опущено (.v-b .layer)
+    const ox = (W - IMG_W * k) / 2, oy = (H - IMG_H * k) / 2;
     return { W, H, k, ox, oy, px: ox + WIN.x * k, py: oy + WIN.y * k };
   }
 
@@ -746,15 +748,15 @@
       });
       // свечение только масштабируется: менять width/height каждый кадр — это пересчёт раскладки
       gsap.set(glowEl, { scale: 1 + e * 1.4, opacity: Math.min(1, Math.max(0, (e - .35) / .5)) });
-      if (!SIDE) detailEl.style.opacity = clamp((s - 2.5) / .5, 0, 1);
+      if (!SIDE && !VB) detailEl.style.opacity = clamp((s - 2.5) / .5, 0, 1);
       const fl = e > .02;
       if (fl !== hero.classList.contains('is-flying')) hero.classList.toggle('is-flying', fl);
     };
     const placeGlow = () => {
       const sz = WIN.w * g.k;
       gsap.set(glowEl, { width: sz, height: sz, x: g.px - sz / 2, y: g.py - sz / 2 });
-      // крупный план — на его участок фото (координаты 2000×1125); в варианте ?side не нужен
-      gsap.set(detailEl, SIDE ? { display: 'none' } : { x: g.ox + DETAIL.x * g.k, y: g.oy + DETAIL.y * g.k, width: DETAIL.w * g.k, height: DETAIL.h * g.k });
+      // крупный план — на его участок фото А (координаты 2000×1125); в ?side и в Б (другое фото) не нужен
+      gsap.set(detailEl, SIDE || VB ? { display: 'none' } : { x: g.ox + DETAIL.x * g.k, y: g.oy + DETAIL.y * g.k, width: DETAIL.w * g.k, height: DETAIL.h * g.k });
     };
     placeGlow();
 
