@@ -270,6 +270,8 @@
   .v-b .layer{background-image:url("assets/hero-b-light.jpg")}
   .v-b .layer--lit{background-image:url("assets/hero-b-dark.jpg")}
   .v-b .name{color:#fff}
+  /* в Б без оранжевой линейки: прячем, но не убираем — от её высоты во вступлении раскрывается фото */
+  .v-b .ruler,.v-b .tick,.v-b .counter{visibility:hidden}
   .v-b .center{top:0;bottom:0;transform:none;pointer-events:none}
   .v-b .center .title{position:absolute;left:var(--gutter);right:var(--gutter);top:23%;transform:translateY(-50%)}
   .v-b .cta-wrap{position:absolute;left:0;right:0;top:49.7%;transform:translateY(-50%);margin:0;pointer-events:auto} /* в небе над крышей (крыша ~55%) */
