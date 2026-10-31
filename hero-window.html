@@ -83,6 +83,8 @@
   /* интерьер кв. 24: гостиная, в окне — наш же двор */
   .room{position:absolute;inset:0;z-index:5;opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;background:var(--night)}
   .room-img{position:absolute;inset:-3%;background:url("assets/interior-24.jpg") center center/cover no-repeat;will-change:transform}
+  /* та же комната с листом и ручкой на столе; уходит, когда наш лист поднимается — иначе на столе остался бы второй */
+  .room-img--paper{background-image:url("assets/interior-24-paper.jpg")}
   .room::after{content:"";position:absolute;inset:0;pointer-events:none;
     background:linear-gradient(180deg,rgba(10,9,7,.45) 0%,rgba(10,9,7,0) 18%,rgba(10,9,7,0) 80%,rgba(10,9,7,.35) 100%)}
   /* камера в комнате: опускает взгляд на журнальный стол */
@@ -95,7 +97,7 @@
   .calc-wrap{position:absolute;inset:0;z-index:9;pointer-events:none}
   .calc{
     --c-paper:#EEEBE4;--c-surface:#F6F5F1;--c-ink:#1E2320;--c-ink2:#5A615C;--c-line:#CBC8BE;
-    position:absolute;left:50%;top:calc(50% + 38px);
+    position:absolute;left:0;top:0;transform-origin:0 0; /* положение и перспективу задаёт matrix3d из JS */
     width:min(1120px,calc(100% - 2 * var(--gutter)));height:min(700px,calc(100% - 76px - 32px));
     display:flex;flex-direction:column;gap:16px;padding:24px 28px;
     background:var(--c-paper);color:var(--c-ink);border:1px solid var(--c-ink);
@@ -179,7 +181,7 @@
   }
   /* без анимаций — обычным блоком после первого экрана */
   .calc-wrap.is-static{position:relative;inset:auto;z-index:auto;pointer-events:auto;width:100%;margin-bottom:48px}
-  .is-static .calc{position:relative;left:auto;top:auto;margin:0 auto;opacity:1;visibility:visible;height:auto;min-height:640px;text-align:left}
+  .is-static .calc{position:relative;left:auto;top:auto;margin:0 auto;opacity:1;visibility:visible;height:auto;min-height:640px;text-align:left;transform:none !important}
 
   /* header */
   .header{position:absolute;inset:0 0 auto;z-index:10;height:76px;display:flex;align-items:center;padding:0 var(--gutter)}
@@ -296,7 +298,7 @@
       <div class="shade"></div>
     </div>
     <div class="room" id="room" role="img" aria-label="Гостиная квартиры 24 вечером, в окне — двор дома">
-      <div class="room-cam" id="roomCam"><div class="room-img"></div><div class="room-blur" id="roomBlur"></div></div>
+      <div class="room-cam" id="roomCam"><div class="room-img"></div><div class="room-img room-img--paper" id="roomPaper"></div><div class="room-blur" id="roomBlur"></div></div>
     </div>
 
     <!-- блок 02: лист с журнального стола поднимается и становится квизом -->
@@ -723,28 +725,53 @@
 
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=690%', pin: true, scrub: .5, anticipatePin: 1, invalidateOnRefresh: true },
+      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=695%', pin: true, scrub: .5, anticipatePin: 1, invalidateOnRefresh: true },
       // квиз кликабелен, только когда лист полностью поднялся
       onUpdate: () => {
-        const open = tl.time() >= 13.6;
+        const open = tl.time() >= 13.7;
         if (open !== calcOpen) { calcOpen = open; calc.classList.toggle('is-open', open); calc.inert = !open; }
+        if (tl.time() > 11.2) placeCalc();
       }
     });
 
-    // стол в кадре интерьера (доли картинки 3840×2143) и куда лечь листу; .room-img — cover с inset −3%
-    const IRW = 3840, IRH = 2143, TABLE = { x: .49, y: .755, w: .22 }, ZOOM = 1.9;
-    const tablePt = () => {
+    // лист на фото интерьера: четыре угла в долях картинки (tl, tr, br, bl), .room-img — cover с inset −3%
+    const IRW = 3840, IRH = 2143, ZOOM = 1.9;
+    const PAPER = [[.5096, .7412], [.5470, .7409], [.5572, .7659], [.5129, .7672]];
+    const PC = [PAPER.reduce((a, q) => a + q[0], 0) / 4, PAPER.reduce((a, q) => a + q[1], 0) / 4];
+    const roomBox = () => {
       const W = hero.clientWidth, H = hero.clientHeight, BW = W * 1.06, BH = H * 1.06;
       const k = Math.max(BW / IRW, BH / IRH), iw = IRW * k, ih = IRH * k;
-      const ox = -.03 * W + (BW - iw) / 2, oy = -.03 * H + (BH - ih) / 2;
-      return { x: ox + TABLE.x * iw, y: oy + TABLE.y * ih, tw: TABLE.w * iw * ZOOM, W, H };
+      return { W, H, iw, ih, ox: -.03 * W + (BW - iw) / 2, oy: -.03 * H + (BH - ih) / 2 };
     };
-    // лежащий лист: в центре столешницы, шириной ~половина стола; центр .calc — (50%, 50% + 38px)
-    const lie = () => {
-      const t = tablePt();
-      return { x: t.x - t.W / 2, y: t.y - (t.H / 2 + 38), s: Math.min(t.tw * .5, t.W * .6) / calc.offsetWidth };
+    const camOrigin = () => { const b = roomBox(); return [b.ox + PC[0] * b.iw, b.oy + PC[1] * b.ih]; };
+    // углы листа на экране после зума камеры на стол (с учётом сдвига комнаты за курсором)
+    const paperQuad = () => {
+      const b = roomBox(), [cx, cy] = camOrigin();
+      const rx = +gsap.getProperty('.room-img', 'x') || 0, ry = +gsap.getProperty('.room-img', 'y') || 0;
+      return PAPER.map(([fx, fy]) => [cx + (b.ox + fx * b.iw + rx - cx) * ZOOM, cy + (b.oy + fy * b.ih + ry - cy) * ZOOM]);
     };
-    gsap.set(calc, { xPercent: -50, yPercent: -50, transformPerspective: 900 });
+    // где квиз стоит раскрытым: по центру под шапкой
+    const openQuad = () => {
+      const W = hero.clientWidth, H = hero.clientHeight, w = calc.offsetWidth, h = calc.offsetHeight;
+      const L = (W - w) / 2, T = H / 2 + 38 - h / 2;
+      return [[L, T], [L + w, T], [L + w, T + h], [L, T + h]];
+    };
+    // matrix3d, натягивающий прямоугольник w×h на произвольный четырёхугольник (гомография «квадрат → четырёхугольник»)
+    const quadMatrix = (q, w, h) => {
+      const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = q;
+      const dx1 = x1 - x2, dx2 = x3 - x2, dx3 = x0 - x1 + x2 - x3, dy1 = y1 - y2, dy2 = y3 - y2, dy3 = y0 - y1 + y2 - y3;
+      const den = dx1 * dy2 - dx2 * dy1;
+      const g = (dx3 * dy2 - dx2 * dy3) / den, hh = (dx1 * dy3 - dx3 * dy1) / den;
+      const a = x1 - x0 + g * x1, b = x3 - x0 + hh * x3, d = y1 - y0 + g * y1, e = y3 - y0 + hh * y3;
+      return `matrix3d(${a / w},${d / w},0,${g / w},${b / h},${e / h},0,${hh / h},0,0,1,0,${x0},${y0},0,1)`;
+    };
+    const lift = { t: 0 };
+    const placeCalc = () => {
+      const from = paperQuad(), to = openQuad(), t = lift.t, k = t * t * (3 - 2 * t);
+      const arc = Math.sin(Math.PI * t) * hero.clientHeight * .06; // лист приподнимается дугой, а не едет по прямой
+      const q = from.map((p, i) => [p[0] + (to[i][0] - p[0]) * k, p[1] + (to[i][1] - p[1]) * k - arc]);
+      calc.style.transform = quadMatrix(q, calc.offsetWidth, calc.offsetHeight);
+    };
 
     // прозрачность, а не autoAlpha: visibility:hidden выкидывает растр, и при обратном скролле всё рисуется заново — рывки.
     // autoAlpha — только для крупного интерьера и слоёв, полностью закрытых им
@@ -768,14 +795,14 @@
       // слой света под курсором сюда не входит: его гасит класс is-flying, иначе инлайн-opacity перебьёт ховер
       .to('.layer--lit, .callouts, .win-glow', { autoAlpha: 0, duration: 1 }, 8) // крупный план не трогаем: его ведёт apply(), а сверху уже интерьер
       // пауза на интерьере, потом взгляд опускается на журнальный стол
-      .to(roomCam, { scale: ZOOM, transformOrigin: () => { const t = tablePt(); return `${t.x}px ${t.y}px`; }, duration: 1.6, ease: 'power2.inOut' }, 9.8)
-      // на столе — лист с расчётом
-      .fromTo(calc, { autoAlpha: 0, x: () => lie().x, y: () => lie().y - 30, scale: () => lie().s, rotationX: 60 },
-                    { autoAlpha: 1, y: () => lie().y, duration: .6, ease: 'power2.out', immediateRender: false }, 10.9)
-      // лист поднимается со стола, разворачивается к зрителю и становится квизом; комната уходит в размытие
-      .to(calc, { x: 0, y: 0, scale: 1, rotationX: 0, duration: 2, ease: 'power3.inOut' }, 11.7)
-      .to('#roomBlur', { opacity: 1, duration: 1.7 }, 11.7)
-      .to({}, { duration: 1.5 }, 13.7); // пауза: квиз в руках
+      .to(roomCam, { scale: ZOOM, transformOrigin: () => camOrigin().map(v => v + 'px').join(' '), duration: 1.6, ease: 'power2.inOut' }, 9.8)
+      // поверх листа на фото проявляется наш лист с расчётом — ровно по его углам
+      .to(calc, { autoAlpha: 1, duration: .35 }, 11.4)
+      // лист поднимается со стола и раскрывается в квиз; фото-лист со стола уходит, комната — в размытие
+      .to(lift, { t: 1, duration: 2, ease: 'none' }, 11.8)
+      .to('#roomPaper', { opacity: 0, duration: .3 }, 11.8)
+      .to('#roomBlur', { opacity: 1, duration: 1.7 }, 11.8)
+      .to({}, { duration: 1.5 }, 13.8); // пауза: квиз в руках
   }
 
   // ---------- блок 02: механика квиза из «Эталон: полная сумма по шагам» ----------
