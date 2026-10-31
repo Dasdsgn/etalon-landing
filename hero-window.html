@@ -265,6 +265,36 @@
   .next{grid-template-rows:1fr auto}
   .next .note{font-size:12px;letter-spacing:.06em;color:#555C57}
 
+  /* ---------- вариант Б (?v=b): ЭТАЛОН в небе по центру, дом ниже, факты текстом внизу ---------- */
+  /* фото опущено на 9% высоты; полосу сверху закрывает небо в цвет верхнего края каждого слоя
+     (у dusk тот же фильтр действует и на ::before, поэтому во вступлении шва тоже нет) */
+  .v-b .layer{top:9%;bottom:-9%}
+  .v-b .layer::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:9.9%;
+    background:linear-gradient(180deg,rgb(95,138,188),rgb(111,151,196))}
+  .v-b .layer--lit::before{background:linear-gradient(180deg,rgb(45,70,99),rgb(60,82,107))}
+  .v-b .name{color:#fff}
+  .v-b .center{top:0;bottom:0;transform:none;pointer-events:none}
+  .v-b .center .title{position:absolute;left:var(--gutter);right:var(--gutter);top:19.5%;transform:translateY(-50%)}
+  .v-b .cta-wrap{position:absolute;left:0;right:0;top:50%;margin:0;pointer-events:auto}
+  .v-b .facts{bottom:3.5%;display:flex;justify-content:space-between;align-items:baseline}
+  .v-b .fact{padding:0;background:none;backdrop-filter:none}
+  .v-b .fact:nth-child(3){order:-1} /* «Ключи» слева, «Цена котлована» справа */
+  .v-b .fact:nth-child(1){order:1}
+
+  /* переключатель вариантов для сравнения */
+  .ab{position:fixed;z-index:90;left:16px;top:92px; /* под шапкой: внизу стоят факты */display:flex;align-items:center;gap:2px;padding:3px;
+    background:rgba(243,235,221,.92);color:var(--ink);font-size:12px;letter-spacing:.06em}
+  .ab span{padding:0 8px 0 6px;color:#555C57}
+  .ab a{padding:5px 10px;color:var(--ink)}
+  .ab a[aria-current="true"]{background:var(--ink);color:#EEEBE4}
+  .ab a:not([aria-current="true"]):hover{background:rgba(30,35,32,.12)}
+  .ab{transition:opacity .3s}
+  .ab.is-away{opacity:0;pointer-events:none} /* только на первом экране — дальше не мешает квизу */
+
+  @media (max-width:760px){
+    .v-b .facts{flex-direction:column;align-items:center;gap:6px}
+  }
+
   @media (max-width:760px){
     .phone,.scroll-hint{display:none}
     .btn-call{padding:10px 16px;font-size:13px}
@@ -297,7 +327,7 @@
       </div>
       <div class="shade"></div>
     </div>
-    <div class="room" id="room" role="img" aria-label="Гостиная квартиры 24 вечером, в окне — двор дома">
+    <div class="room" id="room" role="img" aria-label="Гостиная двушки вечером, в окне — двор дома">
       <div class="room-cam" id="roomCam"><div class="room-img"></div><div class="room-img room-img--paper" id="roomPaper"></div><div class="room-blur" id="roomBlur"></div></div>
     </div>
 
@@ -386,6 +416,8 @@
 
 <section class="next" id="next"><p>Дальше — локация и планировки</p><small class="note">Учебный проект. Объект, цены и контакты вымышлены.</small></section>
 
+<nav class="ab" aria-label="Вариант первого экрана"><span>Вариант</span><a href="hero-window.html" id="abA">А</a><a href="hero-window.html?v=b" id="abB">Б</a></nav>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script>
@@ -413,25 +445,30 @@
   // фото 2000×1125; точки выносок и окно кв. 24 — в координатах фото
   // ?side — для сравнения: влёт в боковое окно; по умолчанию — горящее окно у центральной оси
   const SIDE = new URLSearchParams(location.search).has('side');
+  // ?v=b — вариант Б для сравнения: ЭТАЛОН в небе по центру, дом ниже, факты текстом внизу
+  const VB = new URLSearchParams(location.search).get('v') === 'b';
+  document.documentElement.classList.toggle('v-b', VB);
+  $$('.ab a').forEach(a => a.setAttribute('aria-current', String((a.id === 'abB') === VB)));
+  addEventListener('scroll', () => $('.ab').classList.toggle('is-away', scrollY > innerHeight * .3), { passive: true });
   const IMG_W = 2000, IMG_H = 1125;
   const DETAIL = { x: 650, y: 380, w: 880, h: 495 }; // участок фото под assets/window-closeup.jpg
   const WIN = SIDE ? { x: 1914, y: 462, w: 142 } : { x: 1116, y: 661, w: 46 };
-  const CALLOUTS = SIDE ? [
+  const CALLOUTS = (SIDE ? [
     { x: 1120, y: 545, ex: 1420, ey: 195, text: '6 этажей · 42 квартиры' },
     { x: 425,  y: 440, ex: 540,  ey: 195, text: 'балконы 1,6 м · окна в пол', sm: true },
-    { x: 1914, y: 462, ex: 1820, ey: 330, text: 'кв. 24', target: true, sm: true }
+    { x: 1914, y: 462, ex: 1820, ey: 330, text: '', target: true, sm: true }
   ] : [
     { x: 1240, y: 525, ex: 1380, ey: 195, m: { x: 1000, y: 520, ex: 1000, ey: 455 }, text: '6 этажей · 42 квартиры' },
     { x: 425,  y: 440, ex: 540,  ey: 195, text: 'балконы 1,6 м · окна в пол', sm: true },
-    { x: 1116, y: 661, ex: 1300, ey: 470, text: 'кв. 24', target: true, sm: true }
-  ];
+    { x: 1116, y: 661, ex: 1300, ey: 470, text: '', target: true, sm: true }
+  ]).filter(c => !VB || c.target); // в Б небо отдано слову ЭТАЛОН — инфо-выноски не ставим
 
   let introDone = false, coEls = [], baseline = 0;
 
   function geo() {
     const W = zoom.offsetWidth, H = zoom.offsetHeight;
     const k = Math.max(W / IMG_W, H / IMG_H);
-    const ox = (W - IMG_W * k) / 2, oy = (H - IMG_H * k) / 2;
+    const ox = (W - IMG_W * k) / 2, oy = (H - IMG_H * k) / 2 + (VB ? H * .09 : 0); // в Б фото опущено (.v-b .layer)
     return { W, H, k, ox, oy, px: ox + WIN.x * k, py: oy + WIN.y * k };
   }
 
@@ -453,9 +490,11 @@
     const posX = el => (el.getBoundingClientRect().left - nr.left) / sc;
     const inkL = posX(first) - ctx.measureText(first.textContent).actualBoundingBoxLeft;
     const inkR = posX(last) + ctx.measureText(last.textContent).actualBoundingBoxRight;
-    const size = 100 * (W - 2 * gutter) / (inkR - inkL);
+    // А: от края до края по сетке фактов; Б: по центру в небе, около половины ширины
+    const inkW = VB ? W * (W < 760 ? .84 : .48) : W - 2 * gutter;
+    const size = 100 * inkW / (inkR - inkL);
     nameEl.style.fontSize = size + 'px';
-    nameEl.style.left = (gutter - inkL * size / 100) + 'px';
+    nameEl.style.left = ((VB ? (W - inkW) / 2 : gutter) - inkL * size / 100) + 'px';
 
     // где базовая линия внутри строки (line-height:1)
     ctx.font = `400 ${size}px "Old Standard TT"`;
@@ -464,7 +503,7 @@
     baseline = fd + (size - fa - fd) / 2; // от низа строки до базовой линии
 
     // слово опускаем к низу экрана: подпись под линейкой — в 24 px от края
-    nameEl.style.bottom = (56 - baseline) + 'px';
+    nameEl.style.bottom = (VB ? hero.clientHeight * .58 - baseline : 56 - baseline) + 'px'; // Б: базовая линия на 42% высоты
     ruler.style.bottom = (baseline - 10) + 'px';
     counter.style.bottom = (baseline - 32) + 'px';
 
@@ -481,7 +520,7 @@
 
     // факты — над верхом букв
     const capTop = nameEl.offsetTop + nameEl.offsetHeight - baseline - size * .72;
-    facts.style.bottom = (hero.clientHeight - capTop + 22) + 'px';
+    facts.style.bottom = VB ? '' : (hero.clientHeight - capTop + 22) + 'px'; // в Б факты стоят у низа (CSS)
   }
 
   /* Выноски: создаются один раз (на них ссылаются анимации), при ресайзе только переставляются.
@@ -495,6 +534,7 @@
         const label = document.createElement('div');
         label.className = 'co-label' + (co.sm ? ' co-hide-sm' : '');
         label.textContent = co.text;
+        label.hidden = !co.text; // кольцо цели — без подписи
         coWrap.appendChild(label);
         const grp = document.createElementNS(NS, 'g'); grp.setAttribute('class', 'co' + (co.sm ? ' co-hide-sm' : ''));
         const path = document.createElementNS(NS, 'path'); path.setAttribute('class', 'co-path');
@@ -517,7 +557,7 @@
       else if (ex < x && ex - 44 - lw < Math.max(0, vl) + 12) ex = x + (x - ex);
       const right = ex >= x;
       const lx = ex + (right ? 40 : -40);
-      path.setAttribute('d', `M${x} ${y} L${ex} ${ey} L${lx} ${ey}`);
+      path.setAttribute('d', co.text ? `M${x} ${y} L${ex} ${ey} L${lx} ${ey}` : `M${x} ${y}`);
       ring.setAttribute('cx', x); ring.setAttribute('cy', y);
       dot.setAttribute('cx', x); dot.setAttribute('cy', y);
       const len = path.getTotalLength();
@@ -831,7 +871,7 @@
                { label: 'Под ключ — ремонт от застройщика', note: '41 500 ₽ за м²', val: 'turn' }] }
     ];
 
-    const answers = ['two', null, null, null]; // двушка — та самая кв. 24, в которой человек только что «был»
+    const answers = ['two', null, null, null]; // двушка — та самая, в которой человек только что «был»
     let step = 0, shown = 0;
     const g = id => document.getElementById(id);
     const wrap = g('cStep'), countEl = g('cCount'), ruler = g('cRuler'), back = g('cBack'), next = g('cNext'), hint = g('cHint');
