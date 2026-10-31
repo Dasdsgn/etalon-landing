@@ -269,11 +269,11 @@
   /* своё фото (больше неба, дом ниже) — светлое и запечённо-затемнённое, как в А */
   .v-b .layer{background-image:url("assets/hero-b-light.jpg")}
   .v-b .layer--lit{background-image:url("assets/hero-b-dark.jpg")}
-  .v-b .name{color:#fff}
+  .v-b .name,.v-b .logo-slot{color:#fff} /* и в шапке логотип остаётся белым */
   /* в Б без оранжевой линейки: прячем, но не убираем — от её высоты во вступлении раскрывается фото */
   .v-b .ruler,.v-b .tick,.v-b .counter{visibility:hidden}
   .v-b .center{top:0;bottom:0;transform:none;pointer-events:none}
-  .v-b .center .title{position:absolute;left:var(--gutter);right:var(--gutter);top:23%;transform:translateY(-50%)}
+  .v-b .center .title{position:absolute;left:var(--gutter);right:var(--gutter);top:21.5%;font-size:clamp(22px,2.9vw,46px); /* мельче, чтобы не касаться ЭТАЛОН */transform:translateY(-50%)}
   .v-b .cta-wrap{position:absolute;left:0;right:0;top:49.7%;transform:translateY(-50%);margin:0;pointer-events:auto} /* в небе над крышей (крыша ~55%) */
   .v-b .facts{bottom:3.5%;display:flex;justify-content:space-between;align-items:baseline}
   .v-b .fact{padding:0;background:none;backdrop-filter:none}
@@ -459,7 +459,9 @@
     { x: 425,  y: 440, ex: 540,  ey: 195, text: 'балконы 1,6 м · окна в пол', sm: true },
     { x: 1914, y: 462, ex: 1820, ey: 330, text: WIN_LABEL, target: true, sm: true }
   ] : VB ? [
-    // в Б небо отдано слову ЭТАЛОН — только метка окна, на фасаде
+    // в Б центр неба занят заголовком и словом: этажи — плашкой на фасаде слева, балконы — в небе над правой башней
+    { x: 1020, y: 712, ex: 760, ey: 780, text: '6 этажей · 42 квартиры', sm: true },
+    { x: 1800, y: 560, ex: 1700, ey: 210, text: 'балконы 1,6 м · окна в пол', sm: true },
     { x: 1155, y: 851, ex: 1320, ey: 790, text: WIN_LABEL, target: true, sm: true }
   ] : [
     { x: 1240, y: 525, ex: 1380, ey: 195, m: { x: 1000, y: 520, ex: 1000, ey: 455 }, text: '6 этажей · 42 квартиры' },
