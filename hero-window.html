@@ -262,15 +262,16 @@
   @keyframes drip{0%{transform:translateY(-100%)}60%,100%{transform:translateY(100%)}}
 
   /* курсор-дальномер: перекрестие через весь экран, кольцо, показание */
-  .xh{position:absolute;inset:0;z-index:20;pointer-events:none;opacity:0;transition:opacity .2s ease}
-  .hero.is-hover .xh.ready{opacity:1}
-  .hero.is-flying .xh,.hero:has(a:hover,button:hover) .xh{opacity:0 !important}
-  .xh-v,.xh-h{position:absolute;background:rgba(243,235,221,.45)}
+  .xh{position:fixed;inset:0;z-index:85;pointer-events:none;opacity:0;transition:opacity .2s ease}
+  .xh.ready.on{opacity:1}
+  body:has(a:hover,button:hover,input:hover) .xh{opacity:0 !important}
+  .xh.no-read .xh-read{display:none} /* координаты фото имеют смысл только на фасаде */
+  .xh-v,.xh-h{position:absolute;background:rgba(243,235,221,.5);mix-blend-mode:difference} /* видно и на тёмном фото, и на светлой бумаге */
   .xh-v{top:0;bottom:0;width:1px}
   .xh-h{left:0;right:0;height:1px}
   .xh-c{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border:1px solid var(--signal);border-radius:50%}
   .xh-read{position:absolute;font-size:12px;letter-spacing:.04em;color:var(--ink);background:var(--plate);padding:3px 8px;white-space:nowrap;transform:translate(16px,14px);font-variant-numeric:tabular-nums}
-  @media (hover:hover) and (pointer:fine){ .hero{cursor:none} .hero.is-flying{cursor:auto} .hero a,.hero button{cursor:pointer} }
+  @media (hover:hover) and (pointer:fine){ body{cursor:none} a,button{cursor:pointer} input{cursor:text} }
 
   /* следующий блок */
   .next{min-height:100vh;display:grid;place-items:center;background:#EEEBE4;color:#1E2320;padding:80px var(--gutter);text-align:center}
@@ -426,11 +427,12 @@
       <div class="counter" id="counter">калибровка 000%</div>
     </div>
 
-    <div class="xh" id="xh"><div class="xh-v" id="xhV"></div><div class="xh-h" id="xhH"></div><div class="xh-c" id="xhC"></div><div class="xh-read" id="xhR">x 0 · y 0</div></div>
   </div>
 </section>
 
 <section class="next" id="next"><p>Дальше — локация и планировки</p><small class="note">Учебный проект. Объект, цены и контакты вымышлены.</small></section>
+
+<div class="xh" id="xh"><div class="xh-v" id="xhV"></div><div class="xh-h" id="xhH"></div><div class="xh-c" id="xhC"></div><div class="xh-read" id="xhR">x 0 · y 0</div></div>
 
 <nav class="ab" aria-label="Вариант первого экрана"><span>Вариант</span><a href="hero-window.html" id="abA">А</a><a href="hero-window.html?v=b" id="abB">Б</a></nav>
 
@@ -713,14 +715,20 @@
     const rx = gsap.quickTo('.room-img', 'x', { duration: 1.6, ease: 'power3' });
     const ry = gsap.quickTo('.room-img', 'y', { duration: 1.6, ease: 'power3' });
 
+    const xh = $('#xh');
+    addEventListener('pointermove', e => {
+      const x = e.clientX, y = e.clientY;
+      xh.classList.add('on');
+      xhV.style.left = x + 'px'; xhH.style.top = y + 'px';
+      xhC.style.left = x + 'px'; xhC.style.top = y + 'px';
+      xhR.style.left = x + 'px'; xhR.style.top = y + 'px';
+    }, { passive: true });
+    document.documentElement.addEventListener('mouseleave', () => xh.classList.remove('on'));
     hero.addEventListener('pointerenter', () => hero.classList.add('is-hover'));
     hero.addEventListener('pointerleave', () => hero.classList.remove('is-hover'));
     hero.addEventListener('pointermove', e => {
       const r = hero.getBoundingClientRect();
       const x = e.clientX - r.left, y = e.clientY - r.top;
-      xhV.style.left = x + 'px'; xhH.style.top = y + 'px';
-      xhC.style.left = x + 'px'; xhC.style.top = y + 'px';
-      xhR.style.left = x + 'px'; xhR.style.top = y + 'px';
 
       const flying = hero.classList.contains('is-flying');
       if (!flying) { mx((x / r.width - .5) * -20); my((y / r.height - .5) * -12); }
@@ -792,7 +800,7 @@
       gsap.set(glowEl, { scale: 1 + e * 1.4, opacity: Math.min(1, Math.max(0, (e - .35) / .5)) });
       if (!SIDE) detailEl.style.opacity = clamp((s - 2.5) / .5, 0, 1);
       const fl = e > .02;
-      if (fl !== hero.classList.contains('is-flying')) hero.classList.toggle('is-flying', fl);
+      if (fl !== hero.classList.contains('is-flying')) { hero.classList.toggle('is-flying', fl); $('#xh').classList.toggle('no-read', fl); }
     };
     const placeGlow = () => {
       const sz = WIN.w * g.k;
