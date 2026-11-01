@@ -116,15 +116,7 @@
     opacity:0;visibility:hidden;overflow:hidden;will-change:transform,opacity;
     font-family:'Oswald',system-ui,sans-serif;font-weight:300;font-variant-numeric:tabular-nums}
   .calc.is-open{pointer-events:auto}
-  .sheet-map{position:absolute;inset:0;width:100%;height:100%;opacity:0;visibility:hidden;pointer-events:none;font-family:'Oswald',system-ui,sans-serif;color:#1E2320}
-  .calc-wrap.is-static .sheet-map{display:none}
-  .sm-grid{stroke:#1E2320;stroke-opacity:.07;stroke-width:1}
-  .sm-route{fill:none;stroke:#1E2320;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
-  .sm-dot{fill:var(--signal);opacity:0}
-  .sm-home{fill:#EEEBE4;stroke:#1E2320;stroke-width:2;opacity:0}
-  .sm-lab{font-size:14px;letter-spacing:.08em;text-transform:uppercase;fill:#1E2320;opacity:0;paint-order:stroke;stroke:#EEEBE4;stroke-width:5px;stroke-linejoin:round} /* бумажная кайма: подпись читается поверх линий */
-  .sm-h{font-weight:200;font-size:clamp(26px,3.4vw,52px);fill:#1E2320;opacity:0}
-  .sm-p{font-weight:300;font-size:15px;letter-spacing:.04em;fill:#5A615C;opacity:0}
+
   :where(.calc) button,:where(.calc) input{font:inherit;color:inherit} /* :where — без веса, чтобы не перебивать .c-next и .c-send */
   .calc button:focus-visible,.calc input:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
   .calc-head h2{margin:0;font-weight:400;font-size:clamp(22px,2.4vw,34px);letter-spacing:.01em;line-height:1.1}
@@ -314,6 +306,9 @@
   .wm-route{fill:none;stroke:var(--signal);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
   .wm-dot{fill:var(--signal);opacity:0}
   .route{position:absolute;inset:0;width:100%;height:100%;z-index:9;pointer-events:none;overflow:visible}
+  .plane{position:absolute;inset:0;width:100%;height:100%;z-index:9;pointer-events:none;overflow:visible;opacity:0;visibility:hidden}
+  .plane g{filter:drop-shadow(0 14px 14px rgba(0,0,0,.32))}
+  .plane polygon{stroke:#1E2320;stroke-width:1;stroke-linejoin:round}
   .route path{fill:none;stroke:var(--signal);stroke-width:1.5;stroke-dasharray:1;stroke-dashoffset:1;opacity:0}
   .xh.map-read .xh-read{display:block !important}
   @media (hover:none){ #wMapHint{display:none} }
@@ -430,8 +425,6 @@
           </aside>
         </div>
       </section>
-      <!-- чистый лист занавеса не пустует: на нём чертится план района, маршруты от дома -->
-      <svg class="sheet-map" id="sheetMap" aria-hidden="true"></svg>
     </div>
     <!-- блок 04: прогулка. Скролл = время: часы идут, линия бежит от двери к лесу и метро -->
     <div class="walk" id="walk">
@@ -458,6 +451,7 @@
       <div class="w-band" id="wBand" aria-hidden="true"><i id="wFill"></i><em id="wDot"></em></div>
     </div>
     <svg class="route" id="route" aria-hidden="true"><path id="routeB" pathLength="1"/></svg>
+    <svg class="plane" id="plane" aria-hidden="true"><g id="planeG"></g></svg>
 
     <div class="grain" aria-hidden="true"></div>
 
@@ -974,14 +968,12 @@
     };
     ['wheel', 'touchstart', 'keydown'].forEach(ev => addEventListener(ev, () => { if (auto) { auto.kill(); auto = null; } }, { passive: true }));
 
-    const lift = { t: 0 }, curtain = { t: 0 }; // curtain: чистый лист разворачивается на весь экран
+    const lift = { t: 0 };
     const placeCalc = () => {
       const from = paperQuad(), to = openQuad(), t = lift.t, k = t * t * (3 - 2 * t);
       const arc = Math.sin(Math.PI * t) * hero.clientHeight * .06; // лист приподнимается дугой, а не едет по прямой
-      const W = hero.clientWidth, H = hero.clientHeight, full = [[0, 0], [W, 0], [W, H], [0, H]], c = curtain.t * curtain.t * (3 - 2 * curtain.t);
-      const q = from.map((p, i) => {
-        const x = p[0] + (to[i][0] - p[0]) * k, y = p[1] + (to[i][1] - p[1]) * k - arc;
-        return [x + (full[i][0] - x) * c, y + (full[i][1] - y) * c];
+            const q = from.map((p, i) => {
+        return [p[0] + (to[i][0] - p[0]) * k, p[1] + (to[i][1] - p[1]) * k - arc];
       });
       calc.style.transform = quadMatrix(q, calc.offsetWidth, calc.offsetHeight);
     };
@@ -1096,7 +1088,7 @@
       xhRead.textContent = m < 25 ? 'здесь вы дома' : `${Math.round(m / 10) * 10} м от дома по прямой`;
     };
 
-    let walkShift = 0; // на сколько занавес с планом района сдвинул всё после себя
+    let walkShift = 0; // на сколько самолётик сдвинул всё после себя
     onWalk = t => {
       drawClock();
       const on = t >= 26.5 + walkShift; if (on !== mapOn) { mapOn = on; xhEl.classList.toggle('map-read', on); }
@@ -1106,15 +1098,8 @@
     const show = (id, t0, dur = .4) => tl.fromTo(id, { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: dur, ease: 'power2.out', immediateRender: false }, t0);
     const hide = (id, t0, dur = .3) => tl.to(id, { autoAlpha: 0, duration: dur }, t0);
 
-    // лист-занавес: цифры гаснут, чистый лист разворачивается на весь экран и уходит вверх, за ним уже двор
+    // цифры гаснут; складывание и полёт — ниже, рядом с самолётиком
     tl.to('.calc-head, .calc-quiz', { opacity: 0, duration: .25 }, 16.5)
-      .to(curtain, { t: 1, duration: .8, ease: 'power2.inOut' }, 16.7)
-      .to('#walk', { autoAlpha: 1, duration: .01 }, 17.5)
-      .to('#wGate', { autoAlpha: 1, duration: .01 }, 17.5)
-      .fromTo('#wGate', { scale: 1.12 }, { scale: 1, duration: 1.1, ease: 'power2.out', immediateRender: false }, 17.6)
-      .to('#calcWrap', { y: () => -H_() * 1.05, duration: .9, ease: 'power2.inOut' }, 17.6)
-      .to(calc, { autoAlpha: 0, duration: .01 }, 18.5)
-      .to(routeB, { strokeDashoffset: 0, opacity: 1, duration: .6 }, 18.5)
       .to(routeB, { opacity: 0, duration: .3 }, 19.4);
     show('#wTitle', 18.6); show('#wClock', 18.8); show('#wBand', 18.8);
     hide('#wTitle', 19.4);
@@ -1139,51 +1124,72 @@
     labs.forEach((l, i) => tl.to(l, { opacity: 1, duration: .2 }, 27.15 + i * .15));
     tl.to({}, { duration: 2 }, 27.8); // пауза: можно поводить курсором по карте
 
-    // план района на листе-занавесе: сетка миллиметровки, маршруты чертятся от дома, оранжевые точки на концах
-    const SH = 2.6; // сколько скролла отдано плану; всё, что после занавеса, сдвигается на это время
-    const sheet = $('#sheetMap'), mk = (tag, cls, parent = sheet) => { const e = document.createElementNS(NS, tag); if (cls) e.setAttribute('class', cls); parent.appendChild(e); return e; };
-    const smGrid = mk('path', 'sm-grid');
-    const smRoutes = POINTS.map(() => { const r = mk('path', 'sm-route'); r.setAttribute('pathLength', '1'); return r; });
-    const smHomeLab = mk('text', 'sm-lab'), smHome = mk('circle', 'sm-home'), smDots = POINTS.map(() => mk('circle', 'sm-dot'));
-    const smLabs = POINTS.map(p => { const t = mk('text', 'sm-lab'); t.textContent = p.label; return t; });
-    smHomeLab.textContent = 'Эталон'; smHomeLab.style.cssText = "font-family:'Old Standard TT',serif;text-transform:none;font-size:20px;letter-spacing:.02em";
-    smHome.setAttribute('r', 7);
-    const smH = mk('text', 'sm-h'), smP = mk('text', 'sm-p');
-    smH.textContent = 'Что вокруг дома'; smP.textContent = 'Пешком, бодрым шагом — маршруты по настоящим улицам';
-    smH.setAttribute('text-anchor', 'middle'); smP.setAttribute('text-anchor', 'middle');
-    const placeSheet = () => {
-      const W = W_(), H = H_(), small = W < 760, all = [HOME, ...Object.values(ROUTES).flat()];
-      const k = Math.cos(HOME[0] * Math.PI / 180), proj = ll => [(ll[1] - HOME[1]) * k, -(ll[0] - HOME[0])];
-      const xs = all.map(p => proj(p)[0]), ys = all.map(p => proj(p)[1]);
-      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-      const padL = small ? 24 : 110, padR = small ? 24 : 240, padT = small ? 190 : 210, padB = small ? 70 : 90;
-      const s = Math.min((W - padL - padR) / (x1 - x0), (H - padT - padB) / (y1 - y0));
-      const ox = padL + ((W - padL - padR) - (x1 - x0) * s) / 2, oy = padT + ((H - padT - padB) - (y1 - y0) * s) / 2;
-      const to = ll => { const p = proj(ll); return [ox + (p[0] - x0) * s, oy + (p[1] - y0) * s]; };
-      let g = ''; for (let x = 0; x < W; x += 48) g += `M${x} 0V${H}`; for (let y = 0; y < H; y += 48) g += `M0 ${y}H${W}`;
-      smGrid.setAttribute('d', g);
-      POINTS.forEach((p, i) => {
-        smRoutes[i].setAttribute('d', 'M' + ROUTES[p.key].map(ll => to(ll).map(v => v.toFixed(1)).join(' ')).join('L'));
-        const [x, y] = to(p.ll), left = x + 16 + 150 > W - 8;
-        smDots[i].setAttribute('cx', x); smDots[i].setAttribute('cy', y); smDots[i].setAttribute('r', 6);
-        const up = p.key === 'forest'; // рядом с садом: подпись над точкой, чтобы не сливались
-        smLabs[i].setAttribute('x', up ? x : left ? x - 14 : x + 14); smLabs[i].setAttribute('y', up ? y - 14 : y + 5); smLabs[i].setAttribute('text-anchor', up ? 'middle' : left ? 'end' : 'start');
-      });
-      const [hx, hy] = to(HOME);
-      smHome.setAttribute('cx', hx); smHome.setAttribute('cy', hy);
-      smHomeLab.setAttribute('x', hx); smHomeLab.setAttribute('y', hy - 16); smHomeLab.setAttribute('text-anchor', 'middle');
-      smH.setAttribute('x', W / 2); smH.setAttribute('y', small ? 130 : 142); smP.setAttribute('x', W / 2); smP.setAttribute('y', small ? 158 : 176);
-      sheet.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    // лист складывается в самолётик и улетает вглубь кадра: над дорожкой к калитке, за ним проступает двор.
+    // Складки — многоугольники с вершинами по кадрам: 0 лист, 1 углы к середине, 2 края к середине, 3 крылья раскрыты
+    const SH = 2; // сколько скролла отдано самолётику; всё, что после него, сдвигается на это время
+    const planeEl = $('#plane'), planeG = $('#planeG'), plane = { fold: 0, fly: 0 };
+    const facet = shade => {
+      const e = document.createElementNS(NS, 'polygon'); planeG.appendChild(e);
+      return { e, color: gsap.utils.interpolate('#EEEBE4', shade) };
     };
-    placeSheet(); ScrollTrigger.addEventListener('refreshInit', placeSheet);
+    const keel = facet('#A9A497'), wing2 = facet('#D8D3C7'), wing1 = facet('#F3F0E9'), flapU = facet('#E4DFD4'), flapD = facet('#DBD6CA'), wedgeU = facet('#FBF9F4'), wedgeD = facet('#E9E5DB');
+    const mix = (a, b, t) => a + (b - a) * t, clamp01 = t => Math.min(1, Math.max(0, t));
+    const key = (keys, f) => { const i = Math.min(Math.floor(f), keys.length - 2), t = f - i; return [mix(keys[i][0], keys[i + 1][0], t), mix(keys[i][1], keys[i + 1][1], t)]; };
+    // траектория: дуга через кадр, снизу на дорожку, затем по дорожке к калитке. Таблица углов — чтобы нос поворачивался без скачка через ±180°
+    let path = null;
+    const FLAT = .72; // доля полёта до выхода на дорожку
+    const flightAt = t => {
+      const { P0, C1, C2, P3, END } = path;
+      if (t >= FLAT) { const u = (t - FLAT) / (1 - FLAT); return [mix(P3[0], END[0], u), mix(P3[1], END[1], u)]; }
+      const u = t / FLAT, v = 1 - u, a = v * v * v, b = 3 * v * v * u, c = 3 * v * u * u, d = u * u * u;
+      return [a * P0[0] + b * C1[0] + c * C2[0] + d * P3[0], a * P0[1] + b * C1[1] + c * C2[1] + d * P3[1]];
+    };
+    const buildFlight = () => {
+      const W = W_(), H = H_(), q = openQuad(), P0 = [(q[0][0] + q[2][0]) / 2, (q[0][1] + q[2][1]) / 2];
+      path = { P0, C1: [W * .95, H * .05], C2: [W * .5, H * 1.3], P3: [W * .5, H * .97], END: [W * .5, H * .6], angles: [] };
+      let prev = null;
+      for (let i = 0; i <= 80; i++) {
+        const a = flightAt(Math.min(1, i / 80)), b = flightAt(Math.min(1, i / 80 + .005)), d = i === 80 ? path.angles[79] : Math.atan2(b[1] - a[1], b[0] - a[0]);
+        let ang = d; if (prev !== null && i < 80) { while (ang - prev > Math.PI) ang -= 2 * Math.PI; while (ang - prev < -Math.PI) ang += 2 * Math.PI; }
+        path.angles.push(ang); prev = ang;
+      }
+    };
+    const drawPlane = () => {
+      const w = calc.offsetWidth, h = calc.offsetHeight, L = Math.max(w, h) / 2, S = Math.min(w, h) / 2, start = h > w ? -Math.PI / 2 : 0; // на телефоне лист стоит: нос вверх
+      const f = plane.fold, t = plane.fly, N = [L, 0];
+      const TL = key([[-L, -S], [-L, -S], [-L, -S], [-L, -S * 1.05]], f), TR = key([[-L, S], [-L, S], [-L, S], [-L * .92, S * .75]], f);
+      const TC = key([[-L, 0], [-L, 0], [-L, 0], [-L * .72, S * .12]], f), K = key([[-L, 0], [-L, 0], [-L, 0], [-L * .8, S * .58]], f);
+      const mid = [mix(L, -L * .72, .55), S * .06]; // куда в полёте садятся кромки складок
+      const PU = key([[L - S, -S], [L - S, -S], [-L * .12, -S * .02], [mid[0], mid[1] - S * .05]], f), PD = key([[L - S, S], [L - S, S], [-L * .12, S * .02], [mid[0], mid[1] + S * .05]], f);
+      const CU = key([[L, -S], [L - S, 0], [L * .25, -S * .04], [L * .25, S * .02]], f), CD = key([[L, S], [L - S, 0], [L * .25, S * .04], [L * .25, S * .1]], f);
+      const sc = key([[1, 0], [.82, 0], [.62, 0], [.36, 0]], f)[0] * (t < FLAT ? mix(1, 1.25, t / FLAT) : mix(1.25, .05, Math.pow((t - FLAT) / (1 - FLAT), .8)));
+      const i = t * 80, i0 = Math.min(79, Math.floor(i)), ang = mix(path.angles[i0], path.angles[i0 + 1], i - i0);
+      const rot = mix(start, ang, clamp01(f - 2)), roll = 1 - .28 * Math.sin(Math.min(t / FLAT, 1) * Math.PI * 2) * clamp01(f - 2); // покачивание крыльями
+      const [cx, cy] = flightAt(t), cos = Math.cos(rot), sin = Math.sin(rot);
+      const pts = list => list.map(([x, y]) => { const X = x * sc, Y = y * sc * roll; return `${(cx + X * cos - Y * sin).toFixed(1)},${(cy + X * sin + Y * cos).toFixed(1)}`; }).join(' ');
+      const put = (fc, list, on = 1) => { fc.e.setAttribute('points', pts(list)); fc.e.setAttribute('fill', fc.color(Math.min(1, f))); fc.e.setAttribute('opacity', on); fc.e.setAttribute('stroke-opacity', Math.min(1, f * 2.5) * .5); };
+      put(keel, [N, TC, K], clamp01(f - 2)); put(wing2, [N, TC, TR]); put(wing1, [N, TL, TC]);
+      const flaps = 1 - clamp01(f - 1.6) / .4; put(flapU, [PU, N, CU], flaps); put(flapD, [PD, N, CD], flaps);
+      put(wedgeU, [N, PU, TL]); put(wedgeD, [N, PD, TR]);
+      planeEl.setAttribute('viewBox', `0 0 ${W_()} ${H_()}`);
+      routeB.style.strokeDashoffset = 1 - clamp01((t - FLAT) / (1 - FLAT)); // линия ложится на дорожку только под самолётиком
+    };
+    buildFlight(); drawPlane();
+    ScrollTrigger.addEventListener('refreshInit', () => { buildFlight(); drawPlane(); });
 
-    tl.shiftChildren(SH, false, 17.5); // ушло вперёд: занавес и всё после него начинается позже на SH
-    tl.to(sheet, { autoAlpha: 1, duration: .4 }, 16.9)
-      .to([smH, smP], { opacity: 1, duration: .5, stagger: .15 }, 17.2)
-      .to([smHome, smHomeLab], { opacity: 1, duration: .3 }, 17.5);
-    smRoutes.forEach((r, i) => tl.to(r, { strokeDashoffset: 0, duration: .9, ease: 'power1.inOut' }, 17.8 + i * .3)
-      .to([smDots[i], smLabs[i]], { opacity: 1, duration: .25 }, 18.5 + i * .3));
-    tl.to(sheet, { autoAlpha: 0, duration: .01 }, 18.55 + SH); // лист уже за верхним краем
+    tl.shiftChildren(SH, false, 17.5); // прогулка начинается позже на SH
+    tl.to(planeEl, { autoAlpha: 1, duration: .01 }, 16.72)
+      .to(calc, { autoAlpha: 0, duration: .01 }, 16.74)
+      .to(plane, { fold: 1, duration: .5, ease: 'power2.inOut', onUpdate: drawPlane }, 16.75)
+      .to(plane, { fold: 2, duration: .5, ease: 'power2.inOut', onUpdate: drawPlane }, 17.25)
+      .to(plane, { fold: 3, duration: .45, ease: 'power2.inOut', onUpdate: drawPlane }, 17.75)
+      .to(plane, { fly: 1, duration: 1.9, ease: 'sine.inOut', onUpdate: drawPlane }, 18.2)
+      // комната размыта за листом; двор проступает из той же размытости, пока самолётик в воздухе
+      .to('#wGate', { autoAlpha: 1, duration: .01 }, 18.45)
+      .to('#walk', { autoAlpha: 1, duration: 1.1, ease: 'power1.inOut' }, 18.5)
+      .fromTo('#wGate', { scale: 1.12, filter: 'blur(14px)' }, { scale: 1, filter: 'blur(0px)', duration: 1.6, ease: 'power2.out', immediateRender: false }, 18.5)
+      .to(routeB, { opacity: 1, duration: .05 }, 19.4)
+      .to(planeEl, { autoAlpha: 0, duration: .05 }, 20.05);
     walkShift = SH;
   }
 
