@@ -15,3 +15,5 @@ assets/*
 !assets/hero-b-dark.jpg
 !assets/window-closeup-b.jpg
 !assets/loc-*.jpg
+!assets/vendor/
+!assets/vendor/**
