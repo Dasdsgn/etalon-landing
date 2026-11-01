@@ -71,7 +71,7 @@
   .co-dot{fill:var(--signal);opacity:0}
   .co-ring{fill:none;stroke:var(--signal);stroke-width:1;opacity:0;transition:r .3s ease}
   .co.hot .co-ring{r:14}
-  .co-label{position:absolute;font-size:13px;letter-spacing:.04em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;
+  .co-label{position:absolute;font-size:15px;letter-spacing:.04em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;
     clip-path:inset(0 100% 0 0);transition:background .25s,color .25s}
   .co-label.hot{background:var(--signal);color:var(--ink)}
 
@@ -101,7 +101,7 @@
   .rn-path{fill:none;stroke:var(--signal);stroke-width:1;stroke-dasharray:1;stroke-dashoffset:1}
   .rn-dot{fill:var(--signal);opacity:0}
   .rn-ring{fill:none;stroke:var(--signal);stroke-width:1;opacity:0}
-  .rn-label{position:absolute;font-size:13px;letter-spacing:.04em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;clip-path:inset(0 100% 0 0)}
+  .rn-label{position:absolute;font-size:15px;letter-spacing:.04em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;clip-path:inset(0 100% 0 0)}
   .room-name{position:absolute;left:var(--gutter);bottom:7%;z-index:1;color:#fff;font-weight:200;font-size:clamp(28px,3.4vw,52px);line-height:1.1;
     opacity:0;visibility:hidden;transform:translateY(14px)}
   .room-name span{font-variant-numeric:tabular-nums;color:var(--cream)}
@@ -121,13 +121,13 @@
 
   :where(.calc) button,:where(.calc) input{font:inherit;color:inherit} /* :where — без веса, чтобы не перебивать .c-next и .c-send */
   .calc button:focus-visible,.calc input:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
-  .calc-head h2{margin:0;font-weight:400;font-size:clamp(22px,2.4vw,34px);letter-spacing:.01em;line-height:1.1}
-  .calc-head p{margin:4px 0 0;font-size:15px;color:var(--c-ink2)}
+  .calc-head h2{margin:0;font-weight:400;font-size:clamp(25px,2.69vw,38px);letter-spacing:.01em;line-height:1.1}
+  .calc-head p{margin:4px 0 0;font-size:17px;color:var(--c-ink2)}
   .calc-quiz{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);border-top:1px solid var(--c-ink)}
 
   .c-ask{padding:22px 32px 4px 0;display:flex;flex-direction:column;gap:18px;min-width:0;min-height:0}
   .c-ask-top{display:flex;justify-content:space-between;align-items:center;gap:16px}
-  .c-count{font-size:13px;letter-spacing:.04em;color:var(--c-ink2)}
+  .c-count{font-size:15px;letter-spacing:.04em;color:var(--c-ink2)}
   .c-ruler{position:relative;width:200px;height:14px;flex:none}
   .c-ruler::before{content:"";position:absolute;left:0;right:0;top:6px;height:1px;background:var(--c-line)}
   .c-ruler i{position:absolute;top:6px;left:0;height:1px;background:var(--signal);width:0;transition:width .5s cubic-bezier(.2,.7,.2,1)}
@@ -136,63 +136,75 @@
   .c-step{display:flex;flex-direction:column;gap:16px;min-height:0}
   .c-step.enter{animation:c-enter .42s cubic-bezier(.2,.7,.2,1)}
   @keyframes c-enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-  .c-q{font-size:clamp(26px,2.8vw,40px);font-weight:400;letter-spacing:.005em;line-height:1.08;margin:0}
-  .c-sub{margin:-8px 0 0;color:var(--c-ink2);font-size:15px}
+  .c-q{font-size:clamp(29px,3.14vw,45px);font-weight:400;letter-spacing:.005em;line-height:1.08;margin:0}
+  .c-sub{margin:-8px 0 0;color:var(--c-ink2);font-size:17px}
   .c-opts{display:grid;gap:8px}
   .c-opt{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 16px;text-align:left;background:var(--c-paper);border:1px solid var(--c-line);padding:12px 16px;cursor:pointer;transition:border-color .2s,background-color .2s}
   .c-opt:hover{border-color:var(--c-ink)}
-  .c-opt b{font-weight:400;font-size:18px}
-  .c-opt small{grid-column:1;font-size:13px;color:var(--c-ink2)}
-  .c-opt .k{grid-column:2;grid-row:1 / span 2;font-size:12px;color:var(--c-ink2);border:1px solid var(--c-line);width:26px;height:26px;display:grid;place-items:center}
+  .c-opt b{font-weight:400;font-size:20px}
+  .c-opt small{grid-column:1;font-size:15px;color:var(--c-ink2)}
+  .c-opt .k{grid-column:2;grid-row:1 / span 2;font-size:13px;color:var(--c-ink2);border:1px solid var(--c-line);width:26px;height:26px;display:grid;place-items:center}
   .c-opt.sel{background:var(--c-ink);color:var(--c-paper);border-color:var(--c-ink)}
   .c-opt.sel small,.c-opt.sel .k{color:var(--c-paper);border-color:var(--c-paper);opacity:.8}
   .c-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:16px}
-  .c-back{background:none;border:0;padding:0;font-size:14px;color:var(--c-ink2);cursor:pointer}
+  .c-back{background:none;border:0;padding:0;font-size:16px;color:var(--c-ink2);cursor:pointer}
   .c-back:hover{color:var(--c-ink)}
-  .c-hint{font-size:12px;color:var(--c-ink2)}
-  .c-next{background:var(--c-ink);color:var(--c-paper);border:0;padding:11px 20px;font-size:15px;letter-spacing:.04em;cursor:pointer;transition:background-color .2s}
+  .c-hint{font-size:13px;color:var(--c-ink2)}
+  .c-next{background:var(--c-ink);color:var(--c-paper);border:0;padding:11px 20px;font-size:17px;letter-spacing:.04em;cursor:pointer;transition:background-color .2s}
   .c-next:hover{background:var(--signal);color:var(--c-ink)}
   .c-back[hidden],.c-next[hidden]{display:none}
   .c-form{display:grid;gap:10px}
-  .c-form label{font-size:13px;color:var(--c-ink2)}
-  .c-form input{border:1px solid var(--c-line);background:var(--c-paper);padding:13px 16px;font-size:16px}
-  .c-send{justify-self:start;background:var(--c-ink);color:var(--c-paper);border:0;padding:13px 20px;font-size:15px;letter-spacing:.04em;cursor:pointer}
+  .c-form label{font-size:15px;color:var(--c-ink2)}
+  .c-form input{border:1px solid var(--c-line);background:var(--c-paper);padding:13px 16px;font-size:18px}
+  .c-send{justify-self:start;background:var(--c-ink);color:var(--c-paper);border:0;padding:13px 20px;font-size:17px;letter-spacing:.04em;cursor:pointer}
   .c-send:hover{background:var(--signal);color:var(--c-ink)}
-  .c-err{color:var(--signal);font-size:13px;min-height:18px}
+  .c-err{color:var(--signal);font-size:15px;min-height:18px}
 
   .c-sheet{padding:22px 0 4px 32px;border-left:1px solid var(--c-line);display:flex;flex-direction:column;gap:14px;min-width:0;min-height:0}
-  .c-sheet-head{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;letter-spacing:.04em;color:var(--c-ink2)}
-  .c-sheet-head b{font-weight:400;font-size:20px;color:var(--c-ink)}
+  .c-sheet-head{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;letter-spacing:.04em;color:var(--c-ink2)}
+  .c-sheet-head b{font-weight:400;font-size:22px;color:var(--c-ink)}
   .c-line{display:grid;grid-template-columns:auto minmax(20px,1fr) auto;align-items:baseline;gap:10px;padding-block:8px;border-bottom:1px solid var(--c-line)}
-  .c-line span:first-child{font-size:16px}
-  .c-line small{display:block;font-size:12px;color:var(--c-ink2);margin-top:1px}
+  .c-line span:first-child{font-size:18px}
+  .c-line small{display:block;font-size:13px;color:var(--c-ink2);margin-top:1px}
   .c-line .dots{border-bottom:1px dotted var(--c-line);transform:translateY(-4px)}
-  .c-line .v{font-size:16px;white-space:nowrap}
+  .c-line .v{font-size:18px;white-space:nowrap}
   .c-line.wait .v{color:var(--c-ink2)}
   .c-line.fresh .v{color:var(--signal)}
   .c-total{display:grid;gap:6px;margin-top:auto}
-  .c-lbl{font-size:12px;color:var(--c-ink2);text-transform:uppercase;letter-spacing:.08em}
-  .c-total output{font-size:clamp(30px,3.2vw,46px);font-weight:400;color:var(--c-ink);line-height:1}
+  .c-lbl{font-size:13px;color:var(--c-ink2);text-transform:uppercase;letter-spacing:.08em}
+  .c-total output{font-size:clamp(34px,3.58vw,52px);font-weight:400;color:var(--c-ink);line-height:1}
   .c-dimr{position:relative;height:11px;width:0;transition:width .6s cubic-bezier(.2,.7,.2,1)}
   .c-dimr::before{content:"";position:absolute;left:0;right:0;top:5px;height:1px;background:var(--signal)}
   .c-dimr::after{content:"";position:absolute;inset:0;border-left:1px solid var(--signal);border-right:1px solid var(--signal)}
-  .c-note{font-size:12px;color:var(--c-ink2)}
+  .c-note{font-size:13px;color:var(--c-ink2)}
 
   /* невысокий ноутбук: убираем менеджера и план, строки и итог остаются */
   @media (min-width:861px) and (max-height:760px){ .calc-head p{display:none} .c-line{padding-block:6px} }
   /* телефон: вопрос во весь лист, от листа сверки — только итог */
   @media (max-width:860px){
-    .calc{width:calc(100% - 24px);height:calc(100% - 76px - 20px);padding:14px;gap:10px}
-    .calc-head h2{font-size:20px}
+    .calc{width:calc(100% - 24px);height:calc(100% - var(--hh) - 20px);padding:14px;gap:10px}
+    .calc-head h2{font-size:22px}
     .calc-head p,.c-sheet-head,.c-lines,.c-note,.c-hint{display:none}
     .calc-quiz{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
     .c-ask{padding:14px 0 6px;gap:14px}
     .c-ruler{width:110px}
-    .c-q{font-size:24px}
-    .c-opt{padding:10px 14px}
-    .c-opt b{font-size:16px}
+    .c-q{font-size:27px}
+    .c-step{gap:10px;overflow-y:auto}
+    .c-sub{margin:-4px 0 0;font-size:14px}
+    .c-opts{gap:6px}
+    .c-opt{padding:8px 12px}
+    .c-opt b{font-size:17px}
+    .c-opt small{font-size:13px}
     .c-sheet{padding:10px 0 0;border-left:0;border-top:1px solid var(--c-line)}
-    .c-total output{font-size:26px}
+    .c-total output{font-size:29px}
+  }
+  @media (max-width:860px) and (max-height:720px){ .c-sub{display:none} } /* маленький телефон: иначе варианты не помещаются */
+  @media (min-width:861px) and (max-height:800px){ /* низкий ноутбук: текст тот же, плотнее отступы */
+    .c-ask{padding-top:12px;gap:10px}
+    .c-step{gap:10px;overflow-y:auto}
+    .c-opts{gap:6px}
+    .c-opt{padding:8px 16px}
+    .c-q{font-size:clamp(26px,2.6vw,34px)}
   }
   /* без анимаций — обычным блоком после первого экрана */
   .calc-wrap.is-static{position:relative;inset:auto;z-index:auto;pointer-events:auto;width:100%;margin-bottom:48px}
@@ -205,13 +217,13 @@
   .burger span{display:block;height:1px;background:#fff;transition:transform .5s var(--ease)}
   .burger:hover span:first-child{transform:translateX(6px)}
   .burger:hover span:last-child{transform:translateX(-6px)}
-  .logo-slot{position:absolute;left:0;right:0;top:0;bottom:0;margin:auto;width:max-content;height:max-content;
+  .logo-slot{position:absolute;left:0;right:0;top:.21em;bottom:0;margin:auto; /* top: середина самих букв, а не строки */width:max-content;height:max-content;
     font-family:'Old Standard TT',serif;font-size:28px;letter-spacing:.12em;line-height:1;color:var(--cream);opacity:0;pointer-events:none}
   .header-right{margin-left:auto;display:flex;align-items:center;gap:clamp(16px,4vw,48px)}
   .phone{text-align:right;line-height:1.25}
   .phone b{display:block;font-weight:300;font-size:15px;letter-spacing:.06em}
   .phone small{font-size:11px;letter-spacing:.05em;opacity:.7}
-  .btn-call{position:relative;display:inline-flex;align-items:center;gap:8px;padding-bottom:6px;font-size:14px;letter-spacing:.01em;color:#fff;white-space:nowrap;will-change:transform}
+  .btn-call{position:relative;display:inline-flex;align-items:center;gap:8px;padding-block:6px;font-size:14px;letter-spacing:.01em;color:#fff;white-space:nowrap;will-change:transform}
   .reveal{display:inline-block;overflow:hidden;vertical-align:top}
   .reveal > *{display:inline-block}
 
@@ -270,7 +282,7 @@
   .xh-v{top:0;bottom:0;width:1px}
   .xh-h{left:0;right:0;height:1px}
   .xh-c{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border:1px solid var(--signal);border-radius:50%}
-  .xh-read{position:absolute;font-size:12px;letter-spacing:.04em;color:var(--ink);background:var(--plate);padding:3px 8px;white-space:nowrap;transform:translate(16px,14px);font-variant-numeric:tabular-nums}
+  .xh-read{position:absolute;font-size:14px;letter-spacing:.04em;color:var(--ink);background:var(--plate);padding:3px 8px;white-space:nowrap;transform:translate(16px,14px);font-variant-numeric:tabular-nums}
   @media (hover:hover) and (pointer:fine){ body{cursor:none} a,button{cursor:pointer} input{cursor:text} }
 
   /* ---------- блок 04: прогулка ---------- */
@@ -292,7 +304,7 @@
   .w-band i{position:absolute;left:0;top:0;height:1px;width:100%;background:var(--signal);transform:scaleX(0);transform-origin:left}
   .w-band em{position:absolute;top:-4px;left:0;width:9px;height:9px;margin-left:-4px;border-radius:50%;background:var(--signal)}
   .w-band .w-tick{position:absolute;top:-5px;width:1px;height:11px;background:var(--cream)}
-  .w-band .w-tick span{position:absolute;bottom:13px;left:0;transform:translateX(-50%);font-size:12px;letter-spacing:.04em;color:var(--cream);white-space:nowrap}
+  .w-band .w-tick span{position:absolute;bottom:13px;left:0;transform:translateX(-50%);font-size:14px;letter-spacing:.04em;color:var(--cream);white-space:nowrap}
   .w-band .w-tick:last-child span{left:1px;transform:translateX(-100%)} /* «метро» у края: подпись внутрь */
   .w-map{position:absolute;inset:0;background:#171B19;opacity:0;visibility:hidden}
   #wBase{position:absolute;inset:0;z-index:0;pointer-events:none;background:#F3F1EC} /* подложка-карта; если не загрузится, останется спокойный фон с маршрутами */
@@ -302,7 +314,7 @@
   .w-map-head{position:absolute;z-index:2;left:var(--gutter);top:calc(var(--hh) + 52px);pointer-events:none;color:var(--ink)}
   .w-map-head h2{margin:0;font-weight:200;font-size:clamp(26px,3.2vw,48px);line-height:1.1}
   .w-map-head p{margin:8px 0 0;font-size:clamp(13px,1.2vw,17px);color:#5A615C}
-  .wm-lab{position:absolute;z-index:2;box-shadow:0 0 0 1px rgba(30,35,32,.25);font-size:13px;letter-spacing:.03em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;transform:translate(14px,-50%);opacity:0}
+  .wm-lab{position:absolute;z-index:2;box-shadow:0 0 0 1px rgba(30,35,32,.25);font-size:15px;letter-spacing:.03em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;transform:translate(14px,-50%);opacity:0}
   .wm-home{position:absolute;z-index:2;font-family:'Old Standard TT',serif;font-size:clamp(15px,1.5vw,22px);letter-spacing:.1em;color:#fff;background:var(--ink);padding:3px 10px 4px;transform:translate(-50%,16px);white-space:nowrap}
   .wm-route{fill:none;stroke:var(--signal);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
   .wm-dot{fill:var(--signal);opacity:0}
@@ -339,21 +351,21 @@
   @media (max-width:760px){ :root{--hh:76px} }
   @media (min-width:761px){
     .header::after{background:#BDBDBD}
-    .burger{position:absolute;left:calc(64 * var(--u));top:calc(33.5 * var(--u));width:calc(37 * var(--u));height:calc(26 * var(--u));margin:0;padding:0;align-content:space-between;gap:0}
+    .burger{position:absolute;left:calc(64 * var(--u));top:0;bottom:0;width:calc(37 * var(--u));height:calc(26 * var(--u));margin:auto 0;padding:0;align-content:space-between;gap:0}
     .header-right{display:block;margin:0}
-    .phone{position:absolute;left:calc(1021 * var(--u));top:calc(27 * var(--u));text-align:left;line-height:normal}
+    .phone{position:absolute;left:calc(1021 * var(--u));top:0;bottom:0;height:fit-content;margin:auto 0;text-align:left;line-height:normal}
     .phone b{font-weight:400;font-size:max(12px,calc(17 * var(--u)));letter-spacing:.01em}
     .phone small{display:block;margin-top:calc(2 * var(--u));font-weight:300;font-size:max(10px,calc(12 * var(--u)));letter-spacing:.02em;opacity:1}
-    .btn-call{position:absolute;right:calc(64 * var(--u));top:calc(33 * var(--u));align-items:flex-start;gap:calc(9 * var(--u));padding-bottom:calc(7 * var(--u));font-weight:300;font-size:max(13px,calc(16 * var(--u)))}
-    .btn-call .cta-dot{width:calc(20 * var(--u));height:calc(20 * var(--u));margin-top:calc(1 * var(--u))}
+    .btn-call{position:absolute;right:calc(64 * var(--u));top:0;bottom:0;height:fit-content;margin:auto 0;gap:calc(9 * var(--u));padding-block:calc(7 * var(--u));font-weight:300;font-size:max(13px,calc(16 * var(--u)))}
+    .btn-call .cta-dot{width:calc(20 * var(--u));height:calc(20 * var(--u));margin-top:0}
     .btn-call .cta-dot svg{width:calc(9 * var(--u));height:calc(9 * var(--u))}
     .logo-slot{font-size:max(28px,calc(38 * var(--u)))}
-    .v-b .center .title{font-weight:200;font-size:max(24px,calc(35 * var(--u)));letter-spacing:-.02em;line-height:normal}
+    .v-b .center .title{font-weight:200;font-size:max(20px,calc(35 * var(--bu,var(--u))));letter-spacing:-.02em;line-height:normal}
     .name{letter-spacing:0}
     .name .ch{margin-right:-.066em} /* −6% как в макете, плюс кернинг, которого нет у отдельных букв; не letter-spacing — overflow обрежет букве край */
-    .cta{gap:calc(8 * var(--u));padding:0 0 calc(9 * var(--u));font-weight:300;font-size:max(15px,calc(22 * var(--u)));letter-spacing:.01em}
-    .cta-dot{width:calc(20 * var(--u));height:calc(20 * var(--u));margin-top:calc(3 * var(--u))}
-    .cta-dot svg{width:calc(9 * var(--u));height:calc(9 * var(--u))}
+    .cta{gap:calc(8 * var(--bu,var(--u)));padding:0 0 calc(9 * var(--bu,var(--u)));font-weight:300;font-size:max(14px,calc(22 * var(--bu,var(--u))));letter-spacing:.01em}
+    .cta-dot{width:calc(20 * var(--bu,var(--u)));height:calc(20 * var(--bu,var(--u)));margin-top:calc(3 * var(--bu,var(--u)))}
+    .cta-dot svg{width:calc(9 * var(--bu,var(--u)));height:calc(9 * var(--bu,var(--u)))}
     .v-b .facts{left:calc(64 * var(--u));right:calc(64 * var(--u));bottom:calc(25 * var(--u))}
     .v-b .fact:nth-child(3){margin-left:-.04em} /* у буквы К свой отступ слева: край текста ровно под полосками */
     .v-b .fact{font-weight:300;font-size:max(14px,calc(24 * var(--u)));line-height:1.5;letter-spacing:0}
@@ -553,6 +565,7 @@
   const DETAIL = VB ? { x: 680, y: 526, w: 860, h: 484 } : { x: 650, y: 380, w: 880, h: 495 };
   // горящее окно справа от центральной оси, второй ряд — в координатах своего фото
   const WIN = SIDE ? { x: 1914, y: 462, w: 142 } : VB ? { x: 1155, y: 851, w: 61 } : { x: 1116, y: 661, w: 46 };
+  const ROOF_Y = 625; // край крыши над кнопкой, в координатах фото Б: замерен по снимку на ширине кнопки
   const WIN_LABEL = 'Однушка 38,2 м² — заглянем внутрь ↓';
   const CALLOUTS = (SIDE ? [
     { x: 1120, y: 545, ex: 1420, ey: 195, text: '6 этажей · 42 квартиры' },
@@ -600,8 +613,16 @@
     // А: от края до края по сетке фактов; Б: по центру в небе, около половины ширины
     const inkW = VB ? W * (W < 760 ? .84 : .48) : W - 2 * gutter;
     const fig = VB && W > 760, U = W / 1440; // широкий экран — по макету: блок начинается на 183/848 высоты, внутри расстояния в пикселях макета
-    const figTop = hero.clientHeight * 183 / 848;
-    const size = fig ? 150 * U : 100 * inkW / (inkR - inkL);
+    // блок (183…441 макета) всегда выше крыши: фото обрезается по-разному, поэтому край считаем по самому фото
+    const g0 = geo(), roofY = g0.oy + ROOF_Y * g0.k;
+    let figTop = hero.clientHeight * 183 / 848, B = U;
+    if (fig && figTop + 262 * B > roofY) {
+      figTop = roofY - 262 * B;
+      const lim = header.offsetHeight + 10;
+      if (figTop < lim) { figTop = lim; B = (roofY - lim) / 262; } // совсем низкий и широкий экран: блок ещё и меньше
+    }
+    hero.style.setProperty('--bu', B + 'px');
+    const size = fig ? 150 * B : 100 * inkW / (inkR - inkL);
     nameEl.style.fontSize = size + 'px';
     nameEl.style.left = (fig ? W * 719 / 1440 - nameEl.offsetWidth / 2 : (VB ? (W - inkW) / 2 : gutter) - inkL * size / 100) + 'px';
 
@@ -612,7 +633,7 @@
     baseline = fd + (size - fa - fd) / 2; // от низа строки до базовой линии
 
     // слово опускаем к низу экрана: подпись под линейкой — в 24 px от края
-    nameEl.style.bottom = (fig ? hero.clientHeight - (figTop + 177 * U) - baseline /* базовая линия на Y 360 макета: браузер считает отступ над буквами иначе, чем Фигма */ : VB ? hero.clientHeight * .58 - baseline : 56 - baseline) + 'px'; // Б: базовая линия на 42% высоты
+    nameEl.style.bottom = (fig ? hero.clientHeight - (figTop + 177 * B) - baseline /* базовая линия на Y 360 макета: браузер считает отступ над буквами иначе, чем Фигма */ : VB ? hero.clientHeight * .58 - baseline : 56 - baseline) + 'px'; // Б: базовая линия на 42% высоты
     ruler.style.bottom = (baseline - 10) + 'px';
     counter.style.bottom = (baseline - 32) + 'px';
 
@@ -635,7 +656,7 @@
     if (fig) {
       const wrap = $('.cta-wrap');
       title.style.transform = 'none'; title.style.top = figTop + 'px';
-      wrap.style.transform = 'none'; wrap.style.top = (figTop + 221 * U) + 'px';
+      wrap.style.transform = 'none'; wrap.style.top = (figTop + 221 * B) + 'px';
     } else if (VB) {
       const H = hero.clientHeight, baseY = H * .42, asc = m.actualBoundingBoxAscent;
       const gap = asc * .32, inkTop = baseY - asc;
@@ -651,6 +672,12 @@
       wrap.style.transform = 'none'; wrap.style.top = '0px';
       const dotOff = dot.getBoundingClientRect().top - wrap.getBoundingClientRect().top;
       wrap.style.top = (baseY + gap - dotOff) + 'px';
+      const over = wrap.offsetTop + wrap.offsetHeight + 8 - roofY; // кнопка не заходит на дом: поднимаем весь блок
+      if (over > 0) {
+        wrap.style.top = (wrap.offsetTop - over) + 'px';
+        title.style.top = (title.offsetTop - over) + 'px';
+        nameEl.style.bottom = (parseFloat(nameEl.style.bottom) + over) + 'px';
+      }
     }
   }
 
@@ -681,7 +708,7 @@
       const c = g.W < 760 && co.m ? { ...co, ...co.m } : co; // на телефоне — короткая выноска
       const x = g.ox + c.x * g.k, y = g.oy + c.y * g.k;
       let ex = g.ox + c.ex * g.k;
-      const ey = g.oy + c.ey * g.k, lw = label.offsetWidth;
+      const lw = label.offsetWidth, ey = Math.max(g.oy + c.ey * g.k, header.offsetHeight + 18 + label.offsetHeight / 2); // плашка не заходит под шапку
       // плашке не хватает места у края экрана — выноска разворачивается в другую сторону
       const vl = g.ox, vr = g.ox + IMG_W * g.k; // края фото в координатах .zoom
       if (ex >= x && ex + 44 + lw > Math.min(g.W, vr) - 12) ex = x - (ex - x);
