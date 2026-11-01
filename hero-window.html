@@ -116,6 +116,15 @@
     opacity:0;visibility:hidden;overflow:hidden;will-change:transform,opacity;
     font-family:'Oswald',system-ui,sans-serif;font-weight:300;font-variant-numeric:tabular-nums}
   .calc.is-open{pointer-events:auto}
+  .sheet-map{position:absolute;inset:0;width:100%;height:100%;opacity:0;visibility:hidden;pointer-events:none;font-family:'Oswald',system-ui,sans-serif;color:#1E2320}
+  .calc-wrap.is-static .sheet-map{display:none}
+  .sm-grid{stroke:#1E2320;stroke-opacity:.07;stroke-width:1}
+  .sm-route{fill:none;stroke:#1E2320;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
+  .sm-dot{fill:var(--signal);opacity:0}
+  .sm-home{fill:#EEEBE4;stroke:#1E2320;stroke-width:2;opacity:0}
+  .sm-lab{font-size:14px;letter-spacing:.08em;text-transform:uppercase;fill:#1E2320;opacity:0;paint-order:stroke;stroke:#EEEBE4;stroke-width:5px;stroke-linejoin:round} /* бумажная кайма: подпись читается поверх линий */
+  .sm-h{font-weight:200;font-size:clamp(26px,3.4vw,52px);fill:#1E2320;opacity:0}
+  .sm-p{font-weight:300;font-size:15px;letter-spacing:.04em;fill:#5A615C;opacity:0}
   :where(.calc) button,:where(.calc) input{font:inherit;color:inherit} /* :where — без веса, чтобы не перебивать .c-next и .c-send */
   .calc button:focus-visible,.calc input:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
   .calc-head h2{margin:0;font-weight:400;font-size:clamp(22px,2.4vw,34px);letter-spacing:.01em;line-height:1.1}
@@ -294,13 +303,12 @@
   .w-band .w-tick span{position:absolute;bottom:13px;left:0;transform:translateX(-50%);font-size:12px;letter-spacing:.04em;color:var(--cream);white-space:nowrap}
   .w-band .w-tick:last-child span{left:1px;transform:translateX(-100%)} /* «метро» у края: подпись внутрь */
   .w-map{position:absolute;inset:0;background:#171B19;opacity:0;visibility:hidden}
-  #wLeaflet{position:absolute;inset:0;z-index:0;pointer-events:none;background:#E8E4DA}
-  #wLeaflet .leaflet-tile-pane{filter:saturate(.9) brightness(.97)}
+  #wLeaflet{position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(rgba(30,35,32,.07) 1px,transparent 1px) 0 0/48px 48px,linear-gradient(90deg,rgba(30,35,32,.07) 1px,transparent 1px) 0 0/48px 48px,#EEEBE4}
   #wLeaflet .leaflet-control-attribution{pointer-events:auto;font-size:10px;font-family:inherit}
-  .w-map-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(20,22,20,.82) 0,rgba(20,22,20,.5) 18%,rgba(20,22,20,0) 32%)}
-  .w-map-head{position:absolute;z-index:2;left:var(--gutter);top:96px;pointer-events:none}
+  .w-map-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,#171B19 0,#171B19 76px,rgba(23,27,25,0) 112px)} /* тёмная полоса под шапку: на светлом плане её текст иначе не читается */
+  .w-map-head{position:absolute;z-index:2;left:var(--gutter);top:128px;pointer-events:none;color:var(--ink)}
   .w-map-head h2{margin:0;font-weight:200;font-size:clamp(26px,3.2vw,48px);line-height:1.1}
-  .w-map-head p{margin:8px 0 0;font-size:clamp(13px,1.2vw,17px);color:var(--cream)}
+  .w-map-head p{margin:8px 0 0;font-size:clamp(13px,1.2vw,17px);color:#5A615C}
   .wm-lab{position:absolute;z-index:2;box-shadow:0 0 0 1px rgba(30,35,32,.25);font-size:13px;letter-spacing:.03em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;transform:translate(14px,-50%);opacity:0}
   .wm-home{position:absolute;z-index:2;font-family:'Old Standard TT',serif;font-size:clamp(15px,1.5vw,22px);letter-spacing:.1em;color:#fff;background:var(--ink);padding:3px 10px 4px;transform:translate(-50%,16px);white-space:nowrap}
   .wm-route{fill:none;stroke:var(--signal);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
@@ -422,6 +430,8 @@
           </aside>
         </div>
       </section>
+      <!-- чистый лист занавеса не пустует: на нём чертится план района, маршруты от дома -->
+      <svg class="sheet-map" id="sheetMap" aria-hidden="true"></svg>
     </div>
     <!-- блок 04: прогулка. Скролл = время: часы идут, линия бежит от двери к лесу и метро -->
     <div class="walk" id="walk">
@@ -441,7 +451,7 @@
       <div class="w-map" id="wMap">
         <div id="wLeaflet" aria-hidden="true"></div>
         <div class="w-map-shade"></div>
-        <div class="w-map-head"><h2>Всё рядом — и всё на карте</h2><p id="wMapHint">Наведите курсор на любую точку: покажет, сколько идти от дома</p></div>
+        <div class="w-map-head"><h2>Всё рядом — и всё на карте</h2><p id="wMapHint">Подведите курсор к точке на маршруте — время в пути. На остальной карте — расстояние от дома по прямой</p></div>
       </div>
 
       <div class="w-clock" id="wClock" aria-hidden="true">18:04</div>
@@ -944,7 +954,8 @@
       roomNotes.forEach(({ n, label, path, ring, dot }, i) => {
         if (small) { label.style.left = '12px'; label.style.top = (90 + i * 36) + 'px'; return; }
         const X = f => b.ox + f * b.iw, Y = f => b.oy + f * b.ih;
-        const x = X(n.x), y = Y(n.y), ex = X(n.ex), ey = Y(n.ey), right = ex >= x, lx = ex + (right ? 30 : -30), lw = label.offsetWidth;
+        const ey = Math.max(Y(n.ey), header.offsetHeight + 18 + label.offsetHeight / 2); // плашка не заходит под шапку
+        const x = X(n.x), y = Y(n.y), ex = X(n.ex), right = ex >= x, lx = ex + (right ? 30 : -30), lw = label.offsetWidth;
         path.setAttribute('d', `M${x} ${y} L${ex} ${ey} L${lx} ${ey}`);
         ring.setAttribute('cx', x); ring.setAttribute('cy', y); dot.setAttribute('cx', x); dot.setAttribute('cy', y);
         label.style.left = Math.min(b.W - lw - 8, Math.max(8, right ? lx + 4 : lx - lw - 4)) + 'px';
@@ -1047,7 +1058,8 @@
     const map = L.map('wLeaflet', { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false,
       boxZoom: false, keyboard: false, zoomSnap: W_() < 760 ? .25 : 1, fadeAnimation: false, zoomAnimation: false }).setView(HOME, 15); // без центра слои не добавить
     map.attributionControl.setPrefix(false);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© участники OpenStreetMap' }).addTo(map);
+    // без чужих плиток: план в стиле сайта (бумага, миллиметровка, линии маршрутов); маршруты посчитаны по данным OpenStreetMap
+    map.attributionControl.addAttribution('маршруты по данным © участников OpenStreetMap');
     POINTS.forEach(p => {
       L.polyline(ROUTES[p.key], { className: 'wm-route', interactive: false }).addTo(map).getElement().setAttribute('pathLength', '1');
       L.circleMarker(p.ll, { radius: 6, className: 'wm-dot', stroke: false, fillOpacity: 1, interactive: false }).addTo(map);
@@ -1059,7 +1071,7 @@
       map.invalidateSize(false);
       const small = W_() < 760;
       map.fitBounds(L.latLngBounds([HOME, ...Object.values(ROUTES).flat()]), { animate: false,
-        paddingTopLeft: small ? [20, 150] : [90, 190], paddingBottomRight: small ? [20, 50] : [230, 60] });
+        paddingTopLeft: small ? [20, 215] : [90, 235], paddingBottomRight: small ? [20, 50] : [230, 60] });
       POINTS.forEach((p, i) => {
         const c = map.latLngToContainerPoint(p.ll), l = labs[i];
         l.style.left = c.x + 'px'; l.style.top = c.y + 'px';
@@ -1081,12 +1093,13 @@
       const near = POINTS.find(p => map.latLngToContainerPoint(p.ll).distanceTo(pt) < 26);
       if (near) { xhRead.textContent = near.text; return; }
       const m = map.distance(HOME, map.containerPointToLatLng(pt));   // по прямой
-      xhRead.textContent = m < 25 ? 'здесь вы дома' : `${Math.round(m / 10) * 10} м от дома · ${Math.max(1, Math.round(m * 1.25 / 80))} мин пешком`;
+      xhRead.textContent = m < 25 ? 'здесь вы дома' : `${Math.round(m / 10) * 10} м от дома по прямой`;
     };
 
+    let walkShift = 0; // на сколько занавес с планом района сдвинул всё после себя
     onWalk = t => {
       drawClock();
-      const on = t >= 26.5; if (on !== mapOn) { mapOn = on; xhEl.classList.toggle('map-read', on); }
+      const on = t >= 26.5 + walkShift; if (on !== mapOn) { mapOn = on; xhEl.classList.toggle('map-read', on); }
     };
 
     const scene = (id, t0, dur = .5) => tl.to(id, { autoAlpha: 1, duration: dur }, t0);
@@ -1125,6 +1138,53 @@
     $$('.wm-dot').forEach((d, i) => tl.to(d, { opacity: 1, duration: .15 }, 27.1 + i * .15));
     labs.forEach((l, i) => tl.to(l, { opacity: 1, duration: .2 }, 27.15 + i * .15));
     tl.to({}, { duration: 2 }, 27.8); // пауза: можно поводить курсором по карте
+
+    // план района на листе-занавесе: сетка миллиметровки, маршруты чертятся от дома, оранжевые точки на концах
+    const SH = 2.6; // сколько скролла отдано плану; всё, что после занавеса, сдвигается на это время
+    const sheet = $('#sheetMap'), mk = (tag, cls, parent = sheet) => { const e = document.createElementNS(NS, tag); if (cls) e.setAttribute('class', cls); parent.appendChild(e); return e; };
+    const smGrid = mk('path', 'sm-grid');
+    const smRoutes = POINTS.map(() => { const r = mk('path', 'sm-route'); r.setAttribute('pathLength', '1'); return r; });
+    const smHomeLab = mk('text', 'sm-lab'), smHome = mk('circle', 'sm-home'), smDots = POINTS.map(() => mk('circle', 'sm-dot'));
+    const smLabs = POINTS.map(p => { const t = mk('text', 'sm-lab'); t.textContent = p.label; return t; });
+    smHomeLab.textContent = 'Эталон'; smHomeLab.style.cssText = "font-family:'Old Standard TT',serif;text-transform:none;font-size:20px;letter-spacing:.02em";
+    smHome.setAttribute('r', 7);
+    const smH = mk('text', 'sm-h'), smP = mk('text', 'sm-p');
+    smH.textContent = 'Что вокруг дома'; smP.textContent = 'Пешком, бодрым шагом — маршруты по настоящим улицам';
+    smH.setAttribute('text-anchor', 'middle'); smP.setAttribute('text-anchor', 'middle');
+    const placeSheet = () => {
+      const W = W_(), H = H_(), small = W < 760, all = [HOME, ...Object.values(ROUTES).flat()];
+      const k = Math.cos(HOME[0] * Math.PI / 180), proj = ll => [(ll[1] - HOME[1]) * k, -(ll[0] - HOME[0])];
+      const xs = all.map(p => proj(p)[0]), ys = all.map(p => proj(p)[1]);
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+      const padL = small ? 24 : 110, padR = small ? 24 : 240, padT = small ? 190 : 210, padB = small ? 70 : 90;
+      const s = Math.min((W - padL - padR) / (x1 - x0), (H - padT - padB) / (y1 - y0));
+      const ox = padL + ((W - padL - padR) - (x1 - x0) * s) / 2, oy = padT + ((H - padT - padB) - (y1 - y0) * s) / 2;
+      const to = ll => { const p = proj(ll); return [ox + (p[0] - x0) * s, oy + (p[1] - y0) * s]; };
+      let g = ''; for (let x = 0; x < W; x += 48) g += `M${x} 0V${H}`; for (let y = 0; y < H; y += 48) g += `M0 ${y}H${W}`;
+      smGrid.setAttribute('d', g);
+      POINTS.forEach((p, i) => {
+        smRoutes[i].setAttribute('d', 'M' + ROUTES[p.key].map(ll => to(ll).map(v => v.toFixed(1)).join(' ')).join('L'));
+        const [x, y] = to(p.ll), left = x + 16 + 150 > W - 8;
+        smDots[i].setAttribute('cx', x); smDots[i].setAttribute('cy', y); smDots[i].setAttribute('r', 6);
+        const up = p.key === 'forest'; // рядом с садом: подпись над точкой, чтобы не сливались
+        smLabs[i].setAttribute('x', up ? x : left ? x - 14 : x + 14); smLabs[i].setAttribute('y', up ? y - 14 : y + 5); smLabs[i].setAttribute('text-anchor', up ? 'middle' : left ? 'end' : 'start');
+      });
+      const [hx, hy] = to(HOME);
+      smHome.setAttribute('cx', hx); smHome.setAttribute('cy', hy);
+      smHomeLab.setAttribute('x', hx); smHomeLab.setAttribute('y', hy - 16); smHomeLab.setAttribute('text-anchor', 'middle');
+      smH.setAttribute('x', W / 2); smH.setAttribute('y', small ? 130 : 142); smP.setAttribute('x', W / 2); smP.setAttribute('y', small ? 158 : 176);
+      sheet.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    };
+    placeSheet(); ScrollTrigger.addEventListener('refreshInit', placeSheet);
+
+    tl.shiftChildren(SH, false, 17.5); // ушло вперёд: занавес и всё после него начинается позже на SH
+    tl.to(sheet, { autoAlpha: 1, duration: .4 }, 16.9)
+      .to([smH, smP], { opacity: 1, duration: .5, stagger: .15 }, 17.2)
+      .to([smHome, smHomeLab], { opacity: 1, duration: .3 }, 17.5);
+    smRoutes.forEach((r, i) => tl.to(r, { strokeDashoffset: 0, duration: .9, ease: 'power1.inOut' }, 17.8 + i * .3)
+      .to([smDots[i], smLabs[i]], { opacity: 1, duration: .25 }, 18.5 + i * .3));
+    tl.to(sheet, { autoAlpha: 0, duration: .01 }, 18.55 + SH); // лист уже за верхним краем
+    walkShift = SH;
   }
 
   // ---------- блок 02: механика квиза из «Эталон: полная сумма по шагам» ----------
