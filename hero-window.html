@@ -17,6 +17,8 @@
     --signal:#D9572B;
     --line:rgba(255,255,255,.55);
     --gutter:clamp(16px,4.6vw,60px);
+    --u:calc(100vw / 1440); /* 1 пиксель макета 1440×848 */
+    --hh:max(64px,calc(85 * var(--u))); /* высота шапки */
     --ease:cubic-bezier(.16,1,.3,1);
   }
   *{box-sizing:border-box;margin:0;padding:0}
@@ -110,7 +112,7 @@
   .calc{
     --c-paper:#EEEBE4;--c-surface:#F6F5F1;--c-ink:#1E2320;--c-ink2:#5A615C;--c-line:#CBC8BE;
     position:absolute;left:0;top:0;transform-origin:0 0; /* положение и перспективу задаёт matrix3d из JS */
-    width:min(1120px,calc(100% - 2 * var(--gutter)));height:min(700px,calc(100% - 76px - 32px));
+    width:min(1120px,calc(100% - 2 * var(--gutter)));height:min(700px,calc(100% - var(--hh) - 32px));
     display:flex;flex-direction:column;gap:16px;padding:24px 28px;
     background:var(--c-paper);color:var(--c-ink);border:1px solid var(--c-ink);
     opacity:0;visibility:hidden;overflow:hidden;will-change:transform,opacity;
@@ -197,7 +199,7 @@
   .is-static .calc{position:relative;left:auto;top:auto;margin:0 auto;opacity:1;visibility:visible;height:auto;min-height:640px;text-align:left;transform:none !important}
 
   /* header */
-  .header{position:absolute;inset:0 0 auto;z-index:10;height:76px;display:flex;align-items:center;padding:0 var(--gutter)}
+  .header{position:absolute;inset:0 0 auto;z-index:10;height:var(--hh);display:flex;align-items:center;padding:0 var(--gutter)}
   .header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line);transform:scaleX(var(--hl,0));transform-origin:center}
   .burger{width:44px;height:44px;display:grid;align-content:center;gap:7px;margin-left:-6px;padding:6px}
   .burger span{display:block;height:1px;background:#fff;transition:transform .5s var(--ease)}
@@ -209,10 +211,10 @@
   .phone{text-align:right;line-height:1.25}
   .phone b{display:block;font-weight:300;font-size:15px;letter-spacing:.06em}
   .phone small{font-size:11px;letter-spacing:.05em;opacity:.7}
-  .btn-call{position:relative;overflow:hidden;padding:12px 26px;font-size:14px;letter-spacing:.06em;color:#fff;background:rgba(190,196,214,.55);backdrop-filter:blur(2px);transition:color .4s}
-  .btn-call::before{content:"";position:absolute;inset:0;background:#fff;transform:translateY(101%);transition:transform .6s var(--ease)}
-  .btn-call:hover::before{transform:none}
-  .btn-call:hover{color:#1a1510}
+  .btn-call{position:relative;display:inline-flex;align-items:center;gap:8px;padding-bottom:6px;font-size:14px;letter-spacing:.01em;color:#fff;border-bottom:1px solid #fff;white-space:nowrap}
+  .call-dot{width:20px;height:20px;border-radius:50%;background:#fff;display:grid;place-items:center;transition:transform .6s var(--ease)}
+  .call-dot svg{width:9px;height:9px}
+  .btn-call:hover .call-dot{transform:scale(1.25)}
   .btn-call span{position:relative}
   .reveal{display:inline-block;overflow:hidden;vertical-align:top}
   .reveal > *{display:inline-block}
@@ -256,7 +258,7 @@
   .tick{position:absolute;width:1px;height:11px;background:var(--signal);opacity:0}
   .counter{position:absolute;right:0;font-size:12px;letter-spacing:.08em;line-height:1;opacity:0;font-variant-numeric:tabular-nums;color:var(--signal)}
 
-  .scroll-hint{position:absolute;z-index:9;right:var(--gutter);top:112px;writing-mode:vertical-rl;font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:.65;display:flex;align-items:center;gap:12px}
+  .scroll-hint{position:absolute;z-index:9;right:var(--gutter);top:calc(var(--hh) + 36px);writing-mode:vertical-rl;font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:.65;display:flex;align-items:center;gap:12px}
   .scroll-hint i{width:1px;height:48px;background:rgba(255,255,255,.3);position:relative;overflow:hidden}
   .scroll-hint i::after{content:"";position:absolute;inset:0;background:#fff;animation:drip 2.2s var(--ease) infinite}
   @keyframes drip{0%{transform:translateY(-100%)}60%,100%{transform:translateY(100%)}}
@@ -287,7 +289,7 @@
   .w-phrase{position:absolute;left:var(--gutter);right:var(--gutter);top:50%;transform:translateY(-50%);text-align:center;opacity:0;visibility:hidden;
     font-weight:200;font-size:clamp(38px,6.4vw,104px);line-height:1.05}
   .w-phrase small{display:block;margin-top:14px;font-size:clamp(14px,1.3vw,19px);font-weight:300;color:var(--cream)}
-  .w-clock{position:absolute;left:var(--gutter);top:96px;opacity:0;visibility:hidden;font-weight:300;font-size:clamp(26px,2.8vw,42px);letter-spacing:.02em;font-variant-numeric:tabular-nums}
+  .w-clock{position:absolute;left:var(--gutter);top:calc(var(--hh) + 20px);opacity:0;visibility:hidden;font-weight:300;font-size:clamp(26px,2.8vw,42px);letter-spacing:.02em;font-variant-numeric:tabular-nums}
   .w-band{position:absolute;left:var(--gutter);right:var(--gutter);bottom:34px;height:1px;background:rgba(234,216,188,.38);opacity:0;visibility:hidden}
   .w-band i{position:absolute;left:0;top:0;height:1px;width:100%;background:var(--signal);transform:scaleX(0);transform-origin:left}
   .w-band em{position:absolute;top:-4px;left:0;width:9px;height:9px;margin-left:-4px;border-radius:50%;background:var(--signal)}
@@ -298,8 +300,8 @@
   #wBase{position:absolute;inset:0;z-index:0;pointer-events:none;background:#F3F1EC} /* подложка-карта; если не загрузится, останется спокойный фон с маршрутами */
   #wLeaflet{position:absolute;inset:0;z-index:0;pointer-events:none;background:transparent}
   #wLeaflet .leaflet-control-attribution{pointer-events:auto;font-size:10px;font-family:inherit}
-  .w-map-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,#171B19 0,#171B19 76px,rgba(243,241,236,.94) 76px,rgba(243,241,236,.94) 205px,rgba(243,241,236,0) 250px)} /* тёмная полоса под шапку и светлая под заголовок: поверх карты иначе не читаются */
-  .w-map-head{position:absolute;z-index:2;left:var(--gutter);top:128px;pointer-events:none;color:var(--ink)}
+  .w-map-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,#171B19 0,#171B19 var(--hh),rgba(243,241,236,.94) var(--hh),rgba(243,241,236,.94) calc(var(--hh) + 129px),rgba(243,241,236,0) calc(var(--hh) + 174px))} /* тёмная полоса под шапку и светлая под заголовок: поверх карты иначе не читаются */
+  .w-map-head{position:absolute;z-index:2;left:var(--gutter);top:calc(var(--hh) + 52px);pointer-events:none;color:var(--ink)}
   .w-map-head h2{margin:0;font-weight:200;font-size:clamp(26px,3.2vw,48px);line-height:1.1}
   .w-map-head p{margin:8px 0 0;font-size:clamp(13px,1.2vw,17px);color:#5A615C}
   .wm-lab{position:absolute;z-index:2;box-shadow:0 0 0 1px rgba(30,35,32,.25);font-size:13px;letter-spacing:.03em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;transform:translate(14px,-50%);opacity:0}
@@ -333,6 +335,31 @@
   .v-b .fact:nth-child(3){order:-1} /* «Ключи» слева, «Цена котлована» справа */
   .v-b .fact:nth-child(1){order:1}
 
+  /* ---------- первый экран по макету Фигмы (1440×848): размеры в пикселях макета ---------- */
+  html{scrollbar-width:none} /* полоса прокрутки отняла бы 15 px от ширины макета */
+  html::-webkit-scrollbar{display:none}
+  @media (max-width:760px){ :root{--hh:76px} }
+  @media (min-width:761px){
+    .header::after{background:#BDBDBD}
+    .burger{position:absolute;left:calc(69 * var(--u));top:calc(34 * var(--u));width:calc(37 * var(--u));height:calc(25 * var(--u));margin:0;padding:0;align-content:space-between;gap:0}
+    .header-right{display:block;margin:0}
+    .phone{position:absolute;left:calc(1021 * var(--u));top:calc(27 * var(--u));text-align:left;line-height:normal}
+    .phone b{font-weight:400;font-size:max(12px,calc(17 * var(--u)));letter-spacing:.01em}
+    .phone small{display:block;margin-top:calc(2 * var(--u));font-weight:300;font-size:max(10px,calc(12 * var(--u)));letter-spacing:.02em;opacity:1}
+    .btn-call{position:absolute;left:calc(1222 * var(--u));top:calc(33 * var(--u));gap:calc(9 * var(--u));padding-bottom:calc(6 * var(--u));font-weight:300;font-size:max(13px,calc(16 * var(--u)))}
+    .call-dot{width:calc(20 * var(--u));height:calc(20 * var(--u))}
+    .call-dot svg{width:calc(9 * var(--u));height:calc(9 * var(--u))}
+    .v-b .center .title{font-weight:200;font-size:max(24px,calc(35 * var(--u)));letter-spacing:-.02em;line-height:normal}
+    .name{letter-spacing:0}
+    .name .ch{margin-right:-.066em} /* −6% как в макете, плюс кернинг, которого нет у отдельных букв; не letter-spacing — overflow обрежет букве край */
+    .cta{gap:calc(8 * var(--u));padding:0 0 calc(9 * var(--u));font-weight:300;font-size:max(15px,calc(22 * var(--u)));letter-spacing:.01em}
+    .cta-dot{width:calc(20 * var(--u));height:calc(20 * var(--u));margin-top:calc(3 * var(--u))}
+    .cta-dot svg{width:calc(9 * var(--u));height:calc(9 * var(--u))}
+    .v-b .facts{left:calc(64 * var(--u));right:calc(64 * var(--u));bottom:calc(25 * var(--u))}
+    .v-b .fact{font-weight:300;font-size:max(14px,calc(24 * var(--u)));line-height:1.5;letter-spacing:0}
+  }
+  @media (max-width:1023px){ .phone{display:none} } /* иначе наедет на ссылку: шрифт на таких ширинах упирается в минимум */
+
 
   @media (max-width:760px){
     .v-b .facts{flex-direction:column;align-items:center;gap:6px}
@@ -340,7 +367,7 @@
 
   @media (max-width:760px){
     .phone,.scroll-hint{display:none}
-    .btn-call{padding:10px 16px;font-size:13px}
+    .btn-call{font-size:13px}
     .center{top:27%}
     .facts{grid-template-columns:1fr;gap:8px;justify-items:center}
     .fact:nth-child(n){justify-self:center;padding:8px 16px;font-size:15px}
@@ -449,10 +476,10 @@
       <div class="logo-slot" id="logoSlot" aria-hidden="true">ЭТАЛОН</div>
       <div class="header-right">
         <a class="phone" href="tel:+74955662386">
-          <span class="reveal"><b>+7 (495) 566-23-86</b></span><br>
+          <span class="reveal"><b>+7(495) 566-23-86</b></span><br>
           <span class="reveal"><small>Ежедневно с 9:00 до 21:00</small></span>
         </a>
-        <a class="btn-call" href="#"><span>Заказать звонок</span></a>
+        <a class="btn-call" href="#"><span>Заказать звонок</span><span class="call-dot" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke="#1a1510" stroke-width="1.6"><path d="M1 7h11M7.5 2.5 12 7l-4.5 4.5"/></svg></span></a>
       </div>
     </header>
 
@@ -572,9 +599,11 @@
     const inkR = posX(last) + ctx.measureText(last.textContent).actualBoundingBoxRight;
     // А: от края до края по сетке фактов; Б: по центру в небе, около половины ширины
     const inkW = VB ? W * (W < 760 ? .84 : .48) : W - 2 * gutter;
-    const size = 100 * inkW / (inkR - inkL);
+    const fig = VB && W > 760, U = W / 1440; // широкий экран — по макету: блок начинается на 183/848 высоты, внутри расстояния в пикселях макета
+    const figTop = hero.clientHeight * 183 / 848;
+    const size = fig ? 150 * U : 100 * inkW / (inkR - inkL);
     nameEl.style.fontSize = size + 'px';
-    nameEl.style.left = ((VB ? (W - inkW) / 2 : gutter) - inkL * size / 100) + 'px';
+    nameEl.style.left = (fig ? W * 719 / 1440 - nameEl.offsetWidth / 2 : (VB ? (W - inkW) / 2 : gutter) - inkL * size / 100) + 'px';
 
     // где базовая линия внутри строки (line-height:1)
     ctx.font = `400 ${size}px "Old Standard TT"`;
@@ -583,7 +612,7 @@
     baseline = fd + (size - fa - fd) / 2; // от низа строки до базовой линии
 
     // слово опускаем к низу экрана: подпись под линейкой — в 24 px от края
-    nameEl.style.bottom = (VB ? hero.clientHeight * .58 - baseline : 56 - baseline) + 'px'; // Б: базовая линия на 42% высоты
+    nameEl.style.bottom = (fig ? hero.clientHeight - (figTop + 42 * U + fa) - baseline : VB ? hero.clientHeight * .58 - baseline : 56 - baseline) + 'px'; // Б: базовая линия на 42% высоты
     ruler.style.bottom = (baseline - 10) + 'px';
     counter.style.bottom = (baseline - 32) + 'px';
 
@@ -603,7 +632,11 @@
     facts.style.bottom = VB ? '' : (hero.clientHeight - capTop + 22) + 'px'; // в Б факты стоят у низа (CSS)
 
     // Б: заголовок над словом и кнопка под ним — на одинаковом расстоянии от краёв букв ЭТАЛОН
-    if (VB) {
+    if (fig) {
+      const wrap = $('.cta-wrap');
+      title.style.transform = 'none'; title.style.top = figTop + 'px';
+      wrap.style.transform = 'none'; wrap.style.top = (figTop + 221 * U) + 'px';
+    } else if (VB) {
       const H = hero.clientHeight, baseY = H * .42, asc = m.actualBoundingBoxAscent;
       const gap = asc * .32, inkTop = baseY - asc;
       // заголовок: низ его букв (с хвостом «у») — на gap выше верха букв ЭТАЛОН
@@ -901,7 +934,7 @@
     // где квиз стоит раскрытым: по центру под шапкой
     const openQuad = () => {
       const W = hero.clientWidth, H = hero.clientHeight, w = calc.offsetWidth, h = calc.offsetHeight;
-      const L = (W - w) / 2, T = H / 2 + 38 - h / 2;
+      const L = (W - w) / 2, T = H / 2 + header.offsetHeight / 2 - h / 2;
       return [[L, T], [L + w, T], [L + w, T + h], [L, T + h]];
     };
     // matrix3d, натягивающий прямоугольник w×h на произвольный четырёхугольник (гомография «квадрат → четырёхугольник»)
@@ -1071,7 +1104,7 @@
       map.invalidateSize(false);
       const small = W_() < 760;
       map.fitBounds(L.latLngBounds([HOME, ...Object.values(ROUTES).flat()]), { animate: false,
-        paddingTopLeft: small ? [20, 215] : [90, 235], paddingBottomRight: small ? [20, 50] : [230, 60] });
+        paddingTopLeft: small ? [20, 215] : [90, header.offsetHeight + 159], paddingBottomRight: small ? [20, 50] : [230, 60] });
       POINTS.forEach((p, i) => {
         const c = map.latLngToContainerPoint(p.ll), l = labs[i];
         l.style.left = c.x + 'px'; l.style.top = c.y + 'px';
