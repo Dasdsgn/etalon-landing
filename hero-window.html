@@ -218,7 +218,7 @@
   .burger:hover span:first-child{transform:translateX(6px)}
   .burger:hover span:last-child{transform:translateX(-6px)}
   .logo-slot{position:absolute;left:0;right:0;top:.21em;bottom:0;margin:auto; /* top: середина самих букв, а не строки */width:max-content;height:max-content;
-    font-family:'Old Standard TT',serif;font-size:28px;letter-spacing:.12em;line-height:1;color:var(--cream);opacity:0;pointer-events:none}
+    font-family:'Old Standard TT',serif;font-size:28px;letter-spacing:-.06em;line-height:1;color:var(--cream);opacity:0;pointer-events:none}
   .header-right{margin-left:auto;display:flex;align-items:center;gap:clamp(16px,4vw,48px)}
   .phone{text-align:right;line-height:1.25}
   .phone b{display:block;font-weight:300;font-size:15px;letter-spacing:.06em}
@@ -260,9 +260,9 @@
 
   /* ЭТАЛОН: размер подгоняется под ширину, буквы целиком, линейка по базовой линии */
   .name{position:absolute;z-index:7;left:0;bottom:calc(5vh + 34px);display:flex;align-items:flex-end;
-    font-family:'Old Standard TT',serif;font-weight:400;font-size:200px;letter-spacing:.04em;line-height:1;color:var(--cream);
+    font-family:'Old Standard TT',serif;font-weight:400;font-size:200px;letter-spacing:0;line-height:1;color:var(--cream);
     white-space:nowrap;pointer-events:none;user-select:none;will-change:transform,opacity}
-  .name .ch{display:inline-block;flex-shrink:0;overflow:hidden;padding-top:.08em}
+  .name .ch{display:inline-block;flex-shrink:0;overflow:hidden;padding-top:.08em;margin-right:-.066em} /* −6% как в макете, плюс кернинг, которого нет у отдельных букв; не letter-spacing — overflow обрежет букве край */
   .name .ch > span{display:inline-block;will-change:transform}
   .ruler{position:absolute;left:0;right:0;height:1px;background:var(--signal);transform-origin:left center;transform:scaleX(0)}
   .tick{position:absolute;width:1px;height:11px;background:var(--signal);opacity:0}
@@ -315,7 +315,7 @@
   .w-map-head h2{margin:0;font-weight:200;font-size:clamp(26px,3.2vw,48px);line-height:1.1}
   .w-map-head p{margin:8px 0 0;font-size:clamp(13px,1.2vw,17px);color:#5A615C}
   .wm-lab{position:absolute;z-index:2;box-shadow:0 0 0 1px rgba(30,35,32,.25);font-size:15px;letter-spacing:.03em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;transform:translate(14px,-50%);opacity:0}
-  .wm-home{position:absolute;z-index:2;font-family:'Old Standard TT',serif;font-size:clamp(15px,1.5vw,22px);letter-spacing:.1em;color:#fff;background:var(--ink);padding:3px 10px 4px;transform:translate(-50%,16px);white-space:nowrap}
+  .wm-home{position:absolute;z-index:2;font-family:'Old Standard TT',serif;font-size:clamp(15px,1.5vw,22px);letter-spacing:-.06em;color:#fff;background:var(--ink);padding:3px 10px 4px;transform:translate(-50%,16px);white-space:nowrap}
   .wm-route{fill:none;stroke:var(--signal);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
   .wm-dot{fill:var(--signal);opacity:0}
   .route{position:absolute;inset:0;width:100%;height:100%;z-index:9;pointer-events:none;overflow:visible}
@@ -361,8 +361,6 @@
     .btn-call .cta-dot svg{width:calc(9 * var(--u));height:calc(9 * var(--u))}
     .logo-slot{font-size:max(28px,calc(38 * var(--u)))}
     .v-b .center .title{font-weight:200;font-size:max(20px,calc(35 * var(--bu,var(--u))));letter-spacing:-.02em;line-height:normal}
-    .name{letter-spacing:0}
-    .name .ch{margin-right:-.066em} /* −6% как в макете, плюс кернинг, которого нет у отдельных букв; не letter-spacing — overflow обрежет букве край */
     .cta{gap:calc(8 * var(--bu,var(--u)));padding:0 0 calc(9 * var(--bu,var(--u)));font-weight:300;font-size:max(14px,calc(22 * var(--bu,var(--u))));letter-spacing:.01em}
     .cta-dot{width:calc(20 * var(--bu,var(--u)));height:calc(20 * var(--bu,var(--u)));margin-top:calc(3 * var(--bu,var(--u)))}
     .cta-dot svg{width:calc(9 * var(--bu,var(--u)));height:calc(9 * var(--bu,var(--u)))}
@@ -668,7 +666,7 @@
       title.style.transform = 'none';
       title.style.top = (inkTop - gap - tBase - tm.actualBoundingBoxDescent) + 'px';
       // кнопка: её верх (кружок со стрелкой) — на gap ниже базовой линии
-      const wrap = $('.cta-wrap'), dot = $('.cta-dot');
+      const wrap = $('.cta-wrap'), dot = $('.cta .cta-dot');
       wrap.style.transform = 'none'; wrap.style.top = '0px';
       const dotOff = dot.getBoundingClientRect().top - wrap.getBoundingClientRect().top;
       wrap.style.top = (baseY + gap - dotOff) + 'px';
