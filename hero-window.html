@@ -376,7 +376,7 @@
               <div class="c-line wait" id="cL3"><span>Отделка<small id="cL3s">предчистовая или под ключ</small></span><span class="dots"></span><span class="v" id="cL3v">… ₽</span></div>
             </div>
             <div class="c-total">
-              <span class="c-lbl">Итого до заявки · цены на 24.10.2026</span>
+              <span class="c-lbl">Итого до заявки · цены на <span id="cDate"></span></span>
               <output id="cTotal" aria-live="polite">… ₽</output>
               <div class="c-dimr" id="cDimr"></div>
               <span class="c-note">Доплаты и порядок расчётов — в регламенте застройщика.</span>
@@ -948,6 +948,8 @@
       { key: 'three', name: 'Трёшка', area: 81.6, ppm: 431000 }
     ];
     const PARKING = 4180000, STORAGE = 907200, TURNKEY = 41500;
+    const TODAY = new Date().toLocaleDateString('ru-RU'); // цены — на день, когда человек считает
+    document.getElementById('cDate').textContent = TODAY;
     const rub = n => Math.round(n).toLocaleString('ru-RU') + ' ₽';
     const num = n => String(n).replace('.', ',');
     const price = f => Math.round(f.area * 10 * f.ppm / 10);
@@ -998,7 +1000,7 @@
         next.hidden = true;
         wrap.innerHTML =
           '<h3 class="c-q">Сумма собрана. Отправить расчёт на почту?</h3>' +
-          '<p class="c-sub">В письме будут все строки и цены на 24.10.2026.</p>' +
+          `<p class="c-sub">В письме будут все строки и цены на ${TODAY}.</p>` +
           '<form class="c-form" id="cForm" novalidate><label for="cMail">Почта</label>' +
           '<input id="cMail" type="email" placeholder="name@mail.ru" autocomplete="email">' +
           '<span class="c-err" id="cErr"></span><button class="c-send" type="submit">Отправить расчёт на почту</button></form>';
