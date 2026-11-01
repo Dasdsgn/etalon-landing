@@ -6,7 +6,8 @@
 <title>Эталон — первый экран</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400&family=Old+Standard+TT:wght@400;700&display=swap" rel="stylesheet">
+<!-- неблокирующе: медленный Google Fonts не должен держать чёрный экран -->
+<link id="gf" href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400&family=Old+Standard+TT:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
   :root{
     --night:#0f0d0a;
@@ -92,6 +93,18 @@
   /* фон под калькулятором — заранее размытая копия: blur() на 3840 px на лету тормозит */
   .room-blur{position:absolute;inset:-3%;background:url("assets/interior-24-blur.jpg") center center/cover no-repeat;opacity:0;will-change:opacity}
   .room-blur::after{content:"";position:absolute;inset:0;background:rgba(15,13,10,.32)}
+
+  /* подписи в комнате: выноски как на фасаде и название квартиры */
+  .room-notes{position:absolute;inset:0;pointer-events:none;will-change:opacity}
+  .room-notes svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .rn-path{fill:none;stroke:var(--signal);stroke-width:1;stroke-dasharray:1;stroke-dashoffset:1}
+  .rn-dot{fill:var(--signal);opacity:0}
+  .rn-ring{fill:none;stroke:var(--signal);stroke-width:1;opacity:0}
+  .rn-label{position:absolute;font-size:13px;letter-spacing:.04em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;clip-path:inset(0 100% 0 0)}
+  .room-name{position:absolute;left:var(--gutter);bottom:7%;z-index:1;color:#fff;font-weight:200;font-size:clamp(28px,3.4vw,52px);line-height:1.1;
+    opacity:0;visibility:hidden;transform:translateY(14px)}
+  .room-name span{font-variant-numeric:tabular-nums;color:var(--cream)}
+  @media (max-width:760px){ .rn-path,.rn-ring,.rn-dot{display:none} }
 
   /* ---------- блок 02: квиз «Вся сумма до заявки» — лист, который поднимается со стола ---------- */
   .calc-wrap{position:absolute;inset:0;z-index:9;pointer-events:none}
@@ -327,8 +340,11 @@
       </div>
       <div class="shade"></div>
     </div>
-    <div class="room" id="room" role="img" aria-label="Гостиная двушки вечером, в окне — двор дома">
-      <div class="room-cam" id="roomCam"><div class="room-img"></div><div class="room-img room-img--paper" id="roomPaper"></div><div class="room-blur" id="roomBlur"></div></div>
+    <div class="room" id="room" role="img" aria-label="Гостиная однушки вечером, в окне — двор дома">
+      <div class="room-cam" id="roomCam"><div class="room-img"></div><div class="room-img room-img--paper" id="roomPaper"></div><div class="room-blur" id="roomBlur"></div>
+        <div class="room-notes" id="roomNotes"><svg id="roomSvg" aria-hidden="true"></svg></div>
+      </div>
+      <div class="room-name" id="roomName">Однушка <span>38,2 м²</span></div>
     </div>
 
     <!-- блок 02: лист с журнального стола поднимается и становится квизом -->
@@ -455,7 +471,7 @@
   const DETAIL = VB ? { x: 680, y: 526, w: 860, h: 484 } : { x: 650, y: 380, w: 880, h: 495 };
   // горящее окно справа от центральной оси, второй ряд — в координатах своего фото
   const WIN = SIDE ? { x: 1914, y: 462, w: 142 } : VB ? { x: 1155, y: 851, w: 61 } : { x: 1116, y: 661, w: 46 };
-  const WIN_LABEL = 'Двушка 58,4 м² — заглянем внутрь ↓';
+  const WIN_LABEL = 'Однушка 38,2 м² — заглянем внутрь ↓';
   const CALLOUTS = (SIDE ? [
     { x: 1120, y: 545, ex: 1420, ey: 195, text: '6 этажей · 42 квартиры' },
     { x: 425,  y: 440, ex: 540,  ey: 195, text: 'балконы 1,6 м · окна в пол', sm: true },
@@ -471,7 +487,8 @@
     { x: 1116, y: 661, ex: 1300, ey: 470, text: WIN_LABEL, target: true, sm: true }
   ]);
 
-  let introDone = false, coEls = [], baseline = 0;
+  let introDone = false, coEls = [], baseline = 0, goToQuiz = null;
+  $('.cta').addEventListener('click', e => { e.preventDefault(); if (goToQuiz) goToQuiz(); });
 
   function geo() {
     const W = zoom.offsetWidth, H = zoom.offsetHeight;
@@ -621,6 +638,7 @@
       calcWrap.classList.add('is-static');
       $('#next').before(calcWrap);
       calc.inert = false; calcStatic = true;
+      goToQuiz = () => calcWrap.scrollIntoView();
       return;
     }
 
@@ -791,12 +809,12 @@
 
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=695%', pin: true, scrub: .5, anticipatePin: 1, invalidateOnRefresh: true },
+      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=750%', pin: true, scrub: .5, anticipatePin: 1, invalidateOnRefresh: true },
       // квиз кликабелен, только когда лист полностью поднялся
       onUpdate: () => {
-        const open = tl.time() >= 13.7;
+        const open = tl.time() >= 14.9;
         if (open !== calcOpen) { calcOpen = open; calc.classList.toggle('is-open', open); calc.inert = !open; }
-        if (tl.time() > 11.2) placeCalc();
+        if (tl.time() > 12.4) placeCalc();
       }
     });
 
@@ -831,6 +849,45 @@
       const a = x1 - x0 + g * x1, b = x3 - x0 + hh * x3, d = y1 - y0 + g * y1, e = y3 - y0 + hh * y3;
       return `matrix3d(${a / w},${d / w},0,${g / w},${b / h},${e / h},0,${hh / h},0,0,1,0,${x0},${y0},0,1)`;
     };
+    // выноски в комнате: точка и излом в долях картинки интерьера; на телефоне кадр обрезан с боков — плашки столбиком, без линий
+    const ROOM_NOTES = [
+      { x: .30, y: .24, ex: .34, ey: .15, text: 'Потолки 3,1 м' },
+      { x: .52, y: .31, ex: .60, ey: .19, text: 'Окно в пол · вид во двор' }
+    ];
+    const NS = 'http://www.w3.org/2000/svg', notesEl = $('#roomNotes'), notesSvg = $('#roomSvg');
+    const roomNotes = ROOM_NOTES.map(n => {
+      const label = document.createElement('div'); label.className = 'rn-label'; label.textContent = n.text; notesEl.appendChild(label);
+      const path = document.createElementNS(NS, 'path'); path.setAttribute('class', 'rn-path'); path.setAttribute('pathLength', '1');
+      const ring = document.createElementNS(NS, 'circle'); ring.setAttribute('class', 'rn-ring'); ring.setAttribute('r', 8);
+      const dot = document.createElementNS(NS, 'circle'); dot.setAttribute('class', 'rn-dot'); dot.setAttribute('r', 2.5);
+      notesSvg.append(path, ring, dot);
+      return { n, label, path, ring, dot };
+    });
+    const placeNotes = () => {
+      const b = roomBox(), small = b.W < 760;
+      notesSvg.setAttribute('viewBox', `0 0 ${b.W} ${b.H}`);
+      roomNotes.forEach(({ n, label, path, ring, dot }, i) => {
+        if (small) { label.style.left = '12px'; label.style.top = (90 + i * 36) + 'px'; return; }
+        const X = f => b.ox + f * b.iw, Y = f => b.oy + f * b.ih;
+        const x = X(n.x), y = Y(n.y), ex = X(n.ex), ey = Y(n.ey), right = ex >= x, lx = ex + (right ? 30 : -30), lw = label.offsetWidth;
+        path.setAttribute('d', `M${x} ${y} L${ex} ${ey} L${lx} ${ey}`);
+        ring.setAttribute('cx', x); ring.setAttribute('cy', y); dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+        label.style.left = Math.min(b.W - lw - 8, Math.max(8, right ? lx + 4 : lx - lw - 4)) + 'px';
+        label.style.top = (ey - label.offsetHeight / 2) + 'px';
+      });
+    };
+    placeNotes();
+    ScrollTrigger.addEventListener('refreshInit', placeNotes);
+
+    // кнопка «Выбрать квартиру»: страница сама плавно проигрывает путь до квиза; своя прокрутка пользователя его прерывает
+    let auto = null;
+    goToQuiz = () => {
+      const st = tl.scrollTrigger, p = { y: scrollY };
+      if (auto) auto.kill();
+      auto = gsap.to(p, { y: st.start + (st.end - st.start) * (15.6 / 16.5), duration: 4.2, ease: 'power1.inOut', onUpdate: () => window.scrollTo(0, p.y) });
+    };
+    ['wheel', 'touchstart', 'keydown'].forEach(ev => addEventListener(ev, () => { if (auto) { auto.kill(); auto = null; } }, { passive: true }));
+
     const lift = { t: 0 };
     const placeCalc = () => {
       const from = paperQuad(), to = openQuad(), t = lift.t, k = t * t * (3 - 2 * t);
@@ -846,7 +903,7 @@
       .to(nameEl, { x: () => toLogo().x, y: () => toLogo().y, scale: () => toLogo().s, duration: 1.6, ease: 'power2.inOut' }, 0)
       .to(nameEl, { opacity: 0, duration: .25 }, 1.4)
       .to(logo, { opacity: 1, duration: .25 }, 1.4)
-      .to('.center', { yPercent: -40, opacity: 0, duration: 1 }, 0)
+      .to('.center', VB ? { opacity: 0, duration: .5 } : { yPercent: -40, opacity: 0, duration: 1 }, 0) // в Б кнопка под словом: уезжая вверх, проехала бы сквозь него
       .to('.facts', { y: 40, opacity: 0, duration: 1 }, 0)
       .to('.scroll-hint', { opacity: 0, duration: .6 }, 0)
       .to(others.flatMap(e => [e.path, e.ring, e.dot, e.label]), { opacity: 0, duration: 1 }, .4)
@@ -860,15 +917,24 @@
       .fromTo(room, { scale: 1.12 }, { scale: 1, duration: 2.6 }, 6.6)
       // слой света под курсором сюда не входит: его гасит класс is-flying, иначе инлайн-opacity перебьёт ховер
       .to('.layer--lit, .callouts, .win-glow', { autoAlpha: 0, duration: 1 }, 8) // крупный план не трогаем: его ведёт apply(), а сверху уже интерьер
-      // пауза на интерьере, потом взгляд опускается на журнальный стол
-      .to(roomCam, { scale: ZOOM, transformOrigin: () => camOrigin().map(v => v + 'px').join(' '), duration: 1.6, ease: 'power2.inOut' }, 9.8)
+      // в комнате: название и выноски появляются по очереди, гаснут перед движением камеры
+      .to('#roomName', { autoAlpha: 1, y: 0, duration: .5, ease: 'power2.out' }, 8.4);
+    roomNotes.forEach((n, i) => {
+      const t = 8.7 + i * .5;
+      tl.to(n.path, { strokeDashoffset: 0, duration: .5 }, t)
+        .to([n.ring, n.dot], { opacity: 1, duration: .15 }, t)
+        .to(n.label, { clipPath: 'inset(0 0% 0 0)', duration: .4, ease: 'steps(20)' }, t + .25);
+    });
+    tl.to(['#roomNotes', '#roomName'], { autoAlpha: 0, duration: .4 }, 10.7)
+      // взгляд опускается на журнальный стол
+      .to(roomCam, { scale: ZOOM, transformOrigin: () => camOrigin().map(v => v + 'px').join(' '), duration: 1.6, ease: 'power2.inOut' }, 11)
       // поверх листа на фото проявляется наш лист с расчётом — ровно по его углам
-      .to(calc, { autoAlpha: 1, duration: .35 }, 11.4)
+      .to(calc, { autoAlpha: 1, duration: .35 }, 12.6)
       // лист поднимается со стола и раскрывается в квиз; фото-лист со стола уходит, комната — в размытие
-      .to(lift, { t: 1, duration: 2, ease: 'none' }, 11.8)
-      .to('#roomPaper', { opacity: 0, duration: .3 }, 11.8)
-      .to('#roomBlur', { opacity: 1, duration: 1.7 }, 11.8)
-      .to({}, { duration: 1.5 }, 13.8); // пауза: квиз в руках
+      .to(lift, { t: 1, duration: 2, ease: 'none' }, 13)
+      .to('#roomPaper', { opacity: 0, duration: .3 }, 13)
+      .to('#roomBlur', { opacity: 1, duration: 1.7 }, 13)
+      .to({}, { duration: 1.5 }, 15); // пауза: квиз в руках
   }
 
   // ---------- блок 02: механика квиза из «Эталон: полная сумма по шагам» ----------
@@ -886,7 +952,7 @@
     const num = n => String(n).replace('.', ',');
     const price = f => Math.round(f.area * 10 * f.ppm / 10);
     const STEPS = [
-      { q: 'Какая квартира нужна?', sub: 'Вы смотрели двушку — можно выбрать другую. Цена за метр уже в строке.',
+      { q: 'Какая квартира нужна?', sub: 'Вы смотрели однушку — можно выбрать другую. Цена за метр уже в строке.',
         opts: FLATS.map(f => ({ label: f.name, note: `${num(f.area)} м² × ${f.ppm.toLocaleString('ru-RU')} ₽ = ${rub(price(f))}`, val: f.key })) },
       { q: 'Нужно машиноместо?', sub: 'Подземный паркинг, −1 этаж. Свободно 14 мест из 46.',
         opts: [{ label: 'Нужно', note: rub(PARKING), val: true }, { label: 'Не нужно', note: '0 ₽', val: false }] },
@@ -897,7 +963,7 @@
                { label: 'Под ключ — ремонт от застройщика', note: '41 500 ₽ за м²', val: 'turn' }] }
     ];
 
-    const answers = ['two', null, null, null]; // двушка — та самая, в которой человек только что «был»
+    const answers = ['one', null, null, null]; // однушка — та самая, в которой человек только что «был»
     let step = 0, shown = 0;
     const g = id => document.getElementById(id);
     const wrap = g('cStep'), countEl = g('cCount'), ruler = g('cRuler'), back = g('cBack'), next = g('cNext'), hint = g('cHint');
@@ -1010,8 +1076,16 @@
   })();
 
   // ждём шрифт слова, иначе размер и базовая линия посчитаются по запасному шрифту
-  const fontReady = document.fonts ? document.fonts.load('400 100px "Old Standard TT"', 'ЭТАЛОН') : Promise.resolve();
-  Promise.race([fontReady, new Promise(r => setTimeout(r, 2000))]).then(boot);
+  const gf = $('#gf');
+  const cssReady = new Promise(r => { if (gf.media === 'all') r(); else gf.addEventListener('load', r); });
+  const fontReady = cssReady.then(() => Promise.all([
+    document.fonts.load('400 100px "Old Standard TT"', 'ЭТАЛОН'),
+    document.fonts.load('200 40px Oswald', 'Клубный')
+  ]));
+  let booted = false;
+  Promise.race([fontReady, new Promise(r => setTimeout(r, 2000))]).then(() => { booted = true; boot(); });
+  // шрифт пришёл позже старта — пересчитываем размеры по настоящим буквам
+  fontReady.then(() => { if (booted && document.fonts.status !== 'loading') { layout(); if (introDone) ScrollTrigger.refresh(); } });
 })();
 </script>
 </body>
