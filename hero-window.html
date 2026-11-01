@@ -273,6 +273,41 @@
   .xh-read{position:absolute;font-size:12px;letter-spacing:.04em;color:var(--ink);background:var(--plate);padding:3px 8px;white-space:nowrap;transform:translate(16px,14px);font-variant-numeric:tabular-nums}
   @media (hover:hover) and (pointer:fine){ body{cursor:none} a,button{cursor:pointer} input{cursor:text} }
 
+  /* ---------- блок 04: прогулка ---------- */
+  .walk{position:absolute;inset:0;z-index:8;opacity:0;visibility:hidden;overflow:hidden;background:var(--night);color:#fff}
+  .w-scene{position:absolute;inset:0;background:center center/cover no-repeat;opacity:0;visibility:hidden;will-change:transform,opacity}
+  .w-shade{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(10,9,7,.5) 0%,rgba(10,9,7,0) 22%,rgba(10,9,7,0) 62%,rgba(10,9,7,.62) 100%)}
+  .w-title{position:absolute;left:var(--gutter);right:var(--gutter);top:17%;text-align:center;opacity:0;visibility:hidden}
+  .w-title h2{margin:0;font-weight:200;font-size:clamp(28px,4vw,62px);line-height:1.1}
+  .w-title p{margin:10px 0 0;font-size:clamp(14px,1.3vw,19px);color:var(--cream)}
+  .w-cap{position:absolute;left:var(--gutter);bottom:74px;opacity:0;visibility:hidden;line-height:1.15}
+  .w-cap b{display:block;font-weight:200;font-size:clamp(30px,3.6vw,56px)}
+  .w-cap span{display:block;margin-top:6px;font-size:clamp(14px,1.3vw,19px);color:var(--cream);font-variant-numeric:tabular-nums}
+  .w-phrase{position:absolute;left:var(--gutter);right:var(--gutter);top:50%;transform:translateY(-50%);text-align:center;opacity:0;visibility:hidden;
+    font-weight:200;font-size:clamp(38px,6.4vw,104px);line-height:1.05}
+  .w-phrase small{display:block;margin-top:14px;font-size:clamp(14px,1.3vw,19px);font-weight:300;color:var(--cream)}
+  .w-clock{position:absolute;left:var(--gutter);top:96px;opacity:0;visibility:hidden;font-weight:300;font-size:clamp(26px,2.8vw,42px);letter-spacing:.02em;font-variant-numeric:tabular-nums}
+  .w-band{position:absolute;left:var(--gutter);right:var(--gutter);bottom:34px;height:1px;background:rgba(234,216,188,.38);opacity:0;visibility:hidden}
+  .w-band i{position:absolute;left:0;top:0;height:1px;width:100%;background:var(--signal);transform:scaleX(0);transform-origin:left}
+  .w-band em{position:absolute;top:-4px;left:0;width:9px;height:9px;margin-left:-4px;border-radius:50%;background:var(--signal)}
+  .w-band .w-tick{position:absolute;top:-5px;width:1px;height:11px;background:var(--cream)}
+  .w-band .w-tick span{position:absolute;bottom:13px;left:0;transform:translateX(-50%);font-size:12px;letter-spacing:.04em;color:var(--cream);white-space:nowrap}
+  .w-band .w-tick:last-child span{left:1px;transform:translateX(-100%)} /* «метро» у края: подпись внутрь */
+  .w-map{position:absolute;inset:0;background:#171B19;opacity:0;visibility:hidden}
+  .w-map svg{position:absolute;inset:0;width:100%;height:100%}
+  .w-map-head{position:absolute;left:var(--gutter);top:96px;pointer-events:none}
+  .w-map-head h2{margin:0;font-weight:200;font-size:clamp(26px,3.2vw,48px);line-height:1.1}
+  .w-map-head p{margin:8px 0 0;font-size:clamp(13px,1.2vw,17px);color:var(--cream)}
+  .wm-lab{position:absolute;font-size:13px;letter-spacing:.03em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;transform:translate(14px,-50%);opacity:0}
+  .wm-home{position:absolute;font-family:'Old Standard TT',serif;font-size:clamp(16px,1.6vw,24px);letter-spacing:.1em;color:#fff;transform:translate(-50%,18px);white-space:nowrap}
+  .wm-route{fill:none;stroke:var(--signal);stroke-width:2;stroke-dasharray:1;stroke-dashoffset:1}
+  .wm-dot{fill:var(--signal);opacity:0}
+  .route{position:absolute;inset:0;width:100%;height:100%;z-index:9;pointer-events:none;overflow:visible}
+  .route path{fill:none;stroke:var(--signal);stroke-width:1.5;stroke-dasharray:1;stroke-dashoffset:1;opacity:0}
+  .xh.map-read .xh-read{display:block !important}
+  @media (hover:none){ #wMapHint{display:none} }
+
   /* следующий блок */
   .next{min-height:100vh;display:grid;place-items:center;background:#EEEBE4;color:#1E2320;padding:80px var(--gutter);text-align:center}
   .next p{font-family:'Old Standard TT',serif;font-size:clamp(28px,4vw,56px);max-width:16ch;line-height:1.15}
@@ -386,6 +421,31 @@
         </div>
       </section>
     </div>
+    <!-- блок 04: прогулка. Скролл = время: часы идут, линия бежит от двери к лесу и метро -->
+    <div class="walk" id="walk">
+      <div class="w-scene" id="wGate" data-bg="assets/loc-gate.jpg"></div>
+      <div class="w-scene" id="wGarden" data-bg="assets/loc-garden.jpg"></div>
+      <div class="w-scene" id="wForest" data-bg="assets/loc-forest.jpg"></div>
+      <div class="w-scene" id="wSchool" data-bg="assets/loc-school.jpg"></div>
+      <div class="w-scene" id="wMetro" data-bg="assets/loc-metro.jpg"></div>
+      <div class="w-shade"></div>
+
+      <div class="w-title" id="wTitle"><h2>Лес рядом, 15 минут до метро ВДНХ</h2><p>Маршруты на карте, не на рендере.</p></div>
+      <div class="w-cap" id="capGarden"><b>Детский сад</b><span>380 м · 5 минут от двери</span></div>
+      <div class="w-phrase" id="wPhrase">Шесть минут от двери<small>Лес · 420 м</small></div>
+      <div class="w-cap" id="capSchool"><b>Школа</b><span>650 м · 8 минут от двери</span></div>
+      <div class="w-cap" id="capMetro"><b>Метро ВДНХ</b><span>15 минут: 6 пешком и 9 на автобусе</span></div>
+
+      <div class="w-map" id="wMap">
+        <svg id="wMapSvg" aria-hidden="true"></svg>
+        <div class="w-map-head"><h2>Всё рядом — и всё на карте</h2><p id="wMapHint">Наведите курсор: покажет, сколько идти от дома</p></div>
+      </div>
+
+      <div class="w-clock" id="wClock" aria-hidden="true">18:04</div>
+      <div class="w-band" id="wBand" aria-hidden="true"><i id="wFill"></i><em id="wDot"></em></div>
+    </div>
+    <svg class="route" id="route" aria-hidden="true"><path id="routeA" pathLength="1"/><path id="routeB" pathLength="1"/></svg>
+
     <div class="grain" aria-hidden="true"></div>
 
     <header class="header" id="header">
@@ -430,7 +490,7 @@
   </div>
 </section>
 
-<section class="next" id="next"><p>Дальше — локация и планировки</p><small class="note">Учебный проект. Объект, цены и контакты вымышлены.</small></section>
+<section class="next" id="next"><p>Дальше — планировки</p><small class="note">Учебный проект. Объект, цены и контакты вымышлены.</small></section>
 
 <div class="xh" id="xh"><div class="xh-v" id="xhV"></div><div class="xh-h" id="xhH"></div><div class="xh-c" id="xhC"></div><div class="xh-read" id="xhR">x 0 · y 0</div></div>
 
@@ -489,7 +549,7 @@
     { x: 1116, y: 661, ex: 1300, ey: 470, text: WIN_LABEL, target: true, sm: true }
   ]);
 
-  let introDone = false, coEls = [], baseline = 0, goToQuiz = null;
+  let introDone = false, coEls = [], baseline = 0, goToQuiz = null, cursorHook = null;
   $('.cta').addEventListener('click', e => { e.preventDefault(); if (goToQuiz) goToQuiz(); });
 
   function geo() {
@@ -722,6 +782,7 @@
       xhV.style.left = x + 'px'; xhH.style.top = y + 'px';
       xhC.style.left = x + 'px'; xhC.style.top = y + 'px';
       xhR.style.left = x + 'px'; xhR.style.top = y + 'px';
+      if (cursorHook) cursorHook(x, y); // на карте курсор меряет расстояние
     }, { passive: true });
     document.documentElement.addEventListener('mouseleave', () => xh.classList.remove('on'));
     hero.addEventListener('pointerenter', () => hero.classList.add('is-hover'));
@@ -815,14 +876,16 @@
     const target = coEls.find(e => e.target);
     const others = coEls.filter(e => e !== target);
 
+    let onWalk = null; // кадр блока прогулки (задаётся ниже)
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=750%', pin: true, scrub: .5, anticipatePin: 1, invalidateOnRefresh: true },
+      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=1410%', pin: true, scrub: .5, anticipatePin: 1, invalidateOnRefresh: true },
       // квиз кликабелен, только когда лист полностью поднялся
       onUpdate: () => {
-        const open = tl.time() >= 14.9;
+        const open = tl.time() >= 14.9 && tl.time() < 16.6; // дальше лист уезжает
         if (open !== calcOpen) { calcOpen = open; calc.classList.toggle('is-open', open); calc.inert = !open; }
         if (tl.time() > 12.4) placeCalc();
+        if (onWalk) onWalk(tl.time());
       }
     });
 
@@ -892,7 +955,7 @@
     goToQuiz = () => {
       const st = tl.scrollTrigger, p = { y: scrollY };
       if (auto) auto.kill();
-      auto = gsap.to(p, { y: st.start + (st.end - st.start) * (15.6 / 16.5), duration: 4.2, ease: 'power1.inOut', onUpdate: () => window.scrollTo(0, p.y) });
+      auto = gsap.to(p, { y: st.start + (st.end - st.start) * (15.6 / tl.duration()), duration: 4.2, ease: 'power1.inOut', onUpdate: () => window.scrollTo(0, p.y) });
     };
     ['wheel', 'touchstart', 'keydown'].forEach(ev => addEventListener(ev, () => { if (auto) { auto.kill(); auto = null; } }, { passive: true }));
 
@@ -943,6 +1006,136 @@
       .to('#roomPaper', { opacity: 0, duration: .3 }, 13)
       .to('#roomBlur', { opacity: 1, duration: 1.7 }, 13)
       .to({}, { duration: 1.5 }, 15); // пауза: квиз в руках
+
+    // ---------- блок 04: прогулка. Линия итога отрывается от листа и становится маршрутом ----------
+    const W_ = () => hero.clientWidth, H_ = () => hero.clientHeight;
+    $$('.w-scene').forEach(el => { el.style.backgroundImage = `url("${el.dataset.bg}")`; }); // грузим после вступления
+    const routeA = $('#routeA'), routeB = $('#routeB'), dimr = $('#cDimr');
+    const winPt = () => { const b = roomBox(); return [b.ox + .5 * b.iw, b.oy + .475 * b.ih]; }; // середина окна в комнате
+    const pA = { p: 0 }; let f0 = 0, routeBuilt = false;
+    const buildRoute = () => {
+      // старт — там, где стоит размерная линия под итогом в раскрытом квизе
+      const [[L, T]] = openQuad(), x0 = L + dimr.offsetLeft, y0 = T + dimr.offsetTop + 5, x1 = x0 + dimr.offsetWidth, [wx, wy] = winPt();
+      routeA.setAttribute('d', `M${x0} ${y0} L${x1} ${y0} C${x1 + 160} ${y0 - 40},${wx + 220} ${wy - 160},${wx} ${wy} L${wx} ${H_()}`);
+      f0 = dimr.offsetWidth / routeA.getTotalLength();
+      routeB.setAttribute('d', `M${W_() / 2} ${H_()} L${W_() / 2} ${H_() * .6}`);
+    };
+    // часы и лента минут
+    const clockEl = $('#wClock'), fillEl = $('#wFill'), dotEl = $('#wDot'), clock = { m: 0 };
+    [[5, 'сад'], [6, 'лес'], [8, 'школа'], [15, 'метро']].forEach(([m, name]) => {
+      const t = document.createElement('div'); t.className = 'w-tick'; t.style.left = (m / 15 * 100) + '%';
+      t.innerHTML = `<span>${name}</span>`; $('#wBand').appendChild(t);
+    });
+    const drawClock = () => {
+      clockEl.textContent = '18:' + String(4 + Math.round(clock.m)).padStart(2, '0');
+      fillEl.style.transform = `scaleX(${clock.m / 15})`; dotEl.style.left = (clock.m / 15 * 100) + '%';
+    };
+
+    // карта-схема района: дом, лес, сад, школа, метро. Масштаб: .6 единицы на метр
+    const HOME = [800, 470], M_PER = 1 / .6;
+    const POINTS = [
+      { x: 980, y: 300, name: 'Лес', text: 'до леса 420 м · 6 минут', route: 'M800 470 C860 420,900 380,980 300' },
+      { x: 640, y: 310, name: 'Детский сад', text: 'до сада 380 м · 5 минут', route: 'M800 470 C760 410,700 370,640 310' },
+      { x: 1060, y: 760, name: 'Школа', text: 'до школы 650 м · 8 минут', route: 'M800 470 C880 560,980 650,1060 760' },
+      { x: 430, y: 770, name: 'Метро ВДНХ', text: 'до метро 15 минут: 6 пешком и 9 на автобусе', route: 'M800 470 C740 540,680 590,610 640 L430 770' }
+    ];
+    const mapSvg = $('#wMapSvg'), mapEl = $('#wMap');
+    const hills = [0, 1, 2, 3, 4, 5].map(i => {
+      const k = 1 - i * .14, cx = 1230, cy = 170;
+      return `<ellipse cx="${cx}" cy="${cy}" rx="${520 * k}" ry="${300 * k}" transform="rotate(${-12 + i * 3} ${cx} ${cy})" fill="none" stroke="#3D5C4A" stroke-width="1"/>`;
+    }).join('');
+    const streets = ['M0 620 C400 600,1000 680,1600 640', 'M520 0 C540 300,500 600,470 900', 'M0 300 C400 340,700 400,1600 380', 'M1000 900 C960 700,860 560,800 470'];
+    mapSvg.innerHTML =
+      `<clipPath id="wmForest"><path d="M820 0 L1600 0 L1600 560 C1400 520,1160 470,990 330 C920 260,860 120,820 0Z"/></clipPath>` +
+      `<path d="M820 0 L1600 0 L1600 560 C1400 520,1160 470,990 330 C920 260,860 120,820 0Z" fill="#26392E"/><g clip-path="url(#wmForest)">${hills}</g>` +
+      streets.map(d => `<path d="${d}" fill="none" stroke="#343B37" stroke-width="2"/>`).join('') +
+      POINTS.map(p => `<path class="wm-route" pathLength="1" d="${p.route}"/><circle class="wm-dot" cx="${p.x}" cy="${p.y}" r="6"/>`).join('') +
+      `<circle cx="800" cy="470" r="7" fill="#fff"/><circle cx="800" cy="470" r="16" fill="none" stroke="#fff" stroke-width="1"/>`;
+    const labs = POINTS.map(p => { const el = document.createElement('div'); el.className = 'wm-lab'; el.textContent = p.name; mapEl.appendChild(el); return el; });
+    const homeLab = document.createElement('div'); homeLab.className = 'wm-home'; homeLab.textContent = 'ЭТАЛОН'; mapEl.appendChild(homeLab);
+    let vb = null;
+    const placeMap = () => {
+      // на телефоне кадр уже: показываем только район вокруг точек и вписываем его целиком
+      const small = W_() < 760, v = small ? [380, 180, 760, 680] : [0, 0, 1600, 900];
+      mapSvg.setAttribute('viewBox', v.join(' '));
+      mapSvg.setAttribute('preserveAspectRatio', small ? 'xMidYMid meet' : 'xMidYMid slice');
+      const k = small ? Math.min(W_() / v[2], H_() / v[3]) : Math.max(W_() / v[2], H_() / v[3]);
+      vb = { k, ox: (W_() - v[2] * k) / 2 - v[0] * k, oy: (H_() - v[3] * k) / 2 - v[1] * k };
+      POINTS.forEach((p, i) => {
+        const lx = vb.ox + p.x * k, l = labs[i];
+        l.style.left = lx + 'px'; l.style.top = (vb.oy + p.y * k) + 'px';
+        // не помещается справа — ставим плашку слева от точки
+        l.style.transform = lx + 14 + l.offsetWidth > W_() - 8 ? 'translate(calc(-100% - 14px),-50%)' : '';
+      });
+      homeLab.style.left = (vb.ox + HOME[0] * k) + 'px'; homeLab.style.top = (vb.oy + HOME[1] * k) + 'px';
+    };
+    placeMap();
+    ScrollTrigger.addEventListener('refreshInit', () => { placeMap(); routeBuilt = false; });
+
+    // курсор на карте меряет расстояние от дома
+    const xhEl = $('#xh'), xhRead = $('#xhR'); let mapOn = false;
+    cursorHook = (x, y) => {
+      if (!mapOn || !vb) return;
+      const r = hero.getBoundingClientRect(), mx = (x - r.left - vb.ox) / vb.k, my = (y - r.top - vb.oy) / vb.k;
+      const near = POINTS.find(p => Math.hypot(p.x - mx, p.y - my) < 44);
+      if (near) { xhRead.textContent = near.text; return; }
+      const m = Math.hypot(HOME[0] - mx, HOME[1] - my) * M_PER;
+      xhRead.textContent = m < 25 ? 'здесь вы дома' : `${Math.round(m / 10) * 10} м от дома · ${Math.max(1, Math.round(m / 80))} мин пешком`;
+    };
+
+    onWalk = t => {
+      // линия итога: под листом она заменяет собой размерную линию, дальше живёт отдельно
+      const out = t >= 16.5;
+      if (out && !routeBuilt) { buildRoute(); routeBuilt = true; }
+      if (!out) routeBuilt = false;
+      dimr.style.visibility = out ? 'hidden' : '';
+      routeA.style.opacity = out ? gsap.utils.clamp(0, 1, (20.5 - t) / .3) : 0;
+      if (out) routeA.style.strokeDashoffset = 1 - (f0 + (1 - f0) * pA.p);
+      drawClock();
+      const on = t >= 29; if (on !== mapOn) { mapOn = on; xhEl.classList.toggle('map-read', on); }
+    };
+
+    const scene = (id, t0, dur = .5) => tl.to(id, { autoAlpha: 1, duration: dur }, t0);
+    const show = (id, t0, dur = .4) => tl.fromTo(id, { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: dur, ease: 'power2.out', immediateRender: false }, t0);
+    const hide = (id, t0, dur = .3) => tl.to(id, { autoAlpha: 0, duration: dur }, t0);
+
+    // лист уезжает вверх, линия остаётся; размытие спадает, взгляд поднимается от стола
+    tl.to('#calcWrap', { y: () => -H_() * 1.1, duration: 1, ease: 'power2.in' }, 16.5)
+      .to(calc, { autoAlpha: 0, duration: .01 }, 17.5)
+      .to('#roomBlur', { opacity: 0, duration: .9 }, 17)
+      .to(roomCam, { scale: 1, duration: 1.2, ease: 'power2.inOut' }, 17)
+      // линия бежит к окну и дальше вниз, камера летит за ней
+      .to(pA, { p: 1, duration: 3, ease: 'power1.inOut' }, 17)
+      .set(roomCam, { transformOrigin: () => winPt().map(v => v + 'px').join(' ') }, 18.25)
+      .to(roomCam, { scale: 5, duration: 1.4, ease: 'power2.in' }, 18.3)
+      // сквозь окно вниз, во двор: кадр калитки проявляется, опускаясь
+      .to('#walk', { autoAlpha: 1, duration: .7 }, 19.3);
+    tl.to('#wGate', { autoAlpha: 1, duration: .01 }, 19.3)
+      .fromTo('#wGate', { scale: 1.3, yPercent: -9 }, { scale: 1, yPercent: 0, duration: 1.4, ease: 'power2.out', immediateRender: false }, 19.3)
+      .to(routeB, { strokeDashoffset: 0, opacity: 1, duration: .6 }, 20.3)
+      .to(routeB, { opacity: 0, duration: .3 }, 21.2);
+    show('#wTitle', 20.4); show('#wClock', 20.6); show('#wBand', 20.6);
+    hide('#wTitle', 21.2);
+
+    // прогулка: скролл = время
+    tl.to(clock, { m: 5, duration: 1 }, 21.4);
+    scene('#wGarden', 22); show('#capGarden', 22.2); hide('#capGarden', 22.9);
+    tl.to(clock, { m: 6, duration: .4 }, 23);
+    scene('#wForest', 23, .7);                     // лес — главный кадр: дольше всех
+    tl.fromTo('#wForest', { scale: 1.08 }, { scale: 1, duration: 2.2, immediateRender: false }, 23);
+    show('#wPhrase', 23.6, .5); hide('#wPhrase', 24.9);
+    tl.to(clock, { m: 8, duration: .6 }, 25);
+    scene('#wSchool', 25.2); show('#capSchool', 25.4); hide('#capSchool', 26.2);
+    tl.to(clock, { m: 15, duration: 1 }, 26.3);
+    scene('#wMetro', 26.6); show('#capMetro', 26.9); hide('#capMetro', 27.8);
+
+    // финал: вся карта целиком, маршруты рисуются от дома
+    hide('#wClock', 27.9); hide('#wBand', 27.9);
+    tl.to('#wMap', { autoAlpha: 1, duration: .6 }, 27.9);
+    $$('.wm-route').forEach((r, i) => tl.to(r, { strokeDashoffset: 0, duration: .7 }, 28.4 + i * .15));
+    $$('.wm-dot').forEach((d, i) => tl.to(d, { opacity: 1, duration: .15 }, 28.9 + i * .15));
+    labs.forEach((l, i) => tl.to(l, { opacity: 1, duration: .2 }, 28.95 + i * .15));
+    tl.to({}, { duration: 2 }, 29.6); // пауза: можно поводить курсором по карте
   }
 
   // ---------- блок 02: механика квиза из «Эталон: полная сумма по шагам» ----------
