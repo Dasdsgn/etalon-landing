@@ -295,9 +295,10 @@
   .w-band .w-tick span{position:absolute;bottom:13px;left:0;transform:translateX(-50%);font-size:12px;letter-spacing:.04em;color:var(--cream);white-space:nowrap}
   .w-band .w-tick:last-child span{left:1px;transform:translateX(-100%)} /* «метро» у края: подпись внутрь */
   .w-map{position:absolute;inset:0;background:#171B19;opacity:0;visibility:hidden}
-  #wLeaflet{position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(rgba(30,35,32,.07) 1px,transparent 1px) 0 0/48px 48px,linear-gradient(90deg,rgba(30,35,32,.07) 1px,transparent 1px) 0 0/48px 48px,#EEEBE4}
+  #wBase{position:absolute;inset:0;z-index:0;pointer-events:none;background:#F3F1EC} /* подложка-карта; если не загрузится, останется спокойный фон с маршрутами */
+  #wLeaflet{position:absolute;inset:0;z-index:0;pointer-events:none;background:transparent}
   #wLeaflet .leaflet-control-attribution{pointer-events:auto;font-size:10px;font-family:inherit}
-  .w-map-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,#171B19 0,#171B19 76px,rgba(23,27,25,0) 112px)} /* тёмная полоса под шапку: на светлом плане её текст иначе не читается */
+  .w-map-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,#171B19 0,#171B19 76px,rgba(243,241,236,.94) 76px,rgba(243,241,236,.94) 205px,rgba(243,241,236,0) 250px)} /* тёмная полоса под шапку и светлая под заголовок: поверх карты иначе не читаются */
   .w-map-head{position:absolute;z-index:2;left:var(--gutter);top:128px;pointer-events:none;color:var(--ink)}
   .w-map-head h2{margin:0;font-weight:200;font-size:clamp(26px,3.2vw,48px);line-height:1.1}
   .w-map-head p{margin:8px 0 0;font-size:clamp(13px,1.2vw,17px);color:#5A615C}
@@ -439,6 +440,7 @@
       <div class="w-cap" id="capMetro"><b>Метро ВДНХ</b><span>15 минут пешком от двери</span></div>
 
       <div class="w-map" id="wMap">
+        <div id="wBase" aria-hidden="true"></div>
         <div id="wLeaflet" aria-hidden="true"></div>
         <div class="w-map-shade"></div>
         <div class="w-map-head"><h2>Всё рядом — и всё на карте</h2><p id="wMapHint">Подведите курсор к точке на маршруте — время в пути. На остальной карте — расстояние от дома по прямой</p></div>
@@ -1044,10 +1046,33 @@
     ].map(p => ({ ...p, ll: ROUTES[p.key][ROUTES[p.key].length - 1] }));
     const mapEl = $('#wMap');
     const map = L.map('wLeaflet', { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false,
-      boxZoom: false, keyboard: false, zoomSnap: W_() < 760 ? .25 : 1, fadeAnimation: false, zoomAnimation: false }).setView(HOME, 15); // без центра слои не добавить
+      boxZoom: false, keyboard: false, zoomSnap: .25, fadeAnimation: false, zoomAnimation: false }).setView(HOME, 15); // без центра слои не добавить
     map.attributionControl.setPrefix(false);
-    // без чужих плиток: план в стиле сайта (бумага, миллиметровка, линии маршрутов); маршруты посчитаны по данным OpenStreetMap
-    map.attributionControl.addAttribution('маршруты по данным © участников OpenStreetMap');
+    map.attributionControl.addAttribution('OpenFreeMap © OpenMapTiles · данные © участники OpenStreetMap');
+    // подложка в духе Google/Яндекс: векторная карта без ключа. Leaflet рисует маршруты сверху, подложка стоит на том же центре и масштабе
+    let base = null, baseAsked = false;
+    const syncBase = () => { if (!base) return; base.resize(); const c = map.getCenter(); base.jumpTo({ center: [c.lng, c.lat], zoom: map.getZoom() - 1 }); };
+    const styleBase = () => {
+      const hide = /^(natural_earth|poi_r|building-3d|road_one_way|highway-shield|road_shield|boundary|label_(state|country))/;
+      const paint = { background: '#F3F1EC', park: '#CDE7BE', landcover_wood: '#CDE7BE', landcover_grass: '#DCEFCF', landuse_residential: '#EFEDE7', landuse_school: '#F1EBDD', landuse_hospital: '#F3E6E2', water: '#A9D3EE', building: '#E5E2DA' };
+      base.getStyle().layers.forEach(l => {
+        if (hide.test(l.id)) { base.setLayoutProperty(l.id, 'visibility', 'none'); return; }
+        if (l.layout && l.layout['text-field'] && !/shield/.test(l.id)) base.setLayoutProperty(l.id, 'text-field', ['coalesce', ['get', 'name:ru'], ['get', 'name']]); // подписи только по-русски
+        if (l.id === 'poi_transit') base.setFilter(l.id, ['==', ['get', 'class'], 'railway']); // из транспорта только метро и станции, без остановок
+        if (paint[l.id]) base.setPaintProperty(l.id, l.type === 'background' ? 'background-color' : 'fill-color', paint[l.id]);
+      });
+    };
+    const loadBase = () => {
+      if (baseAsked) return; baseAsked = true;
+      const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = 'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css'; document.head.appendChild(link);
+      const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js';
+      s.onload = () => {
+        base = new maplibregl.Map({ container: 'wBase', style: 'https://tiles.openfreemap.org/styles/liberty', interactive: false, attributionControl: false, fadeDuration: 0 });
+        base.on('style.load', () => { styleBase(); syncBase(); });
+        syncBase();
+      };
+      document.head.appendChild(s);
+    };
     POINTS.forEach(p => {
       L.polyline(ROUTES[p.key], { className: 'wm-route', interactive: false }).addTo(map).getElement().setAttribute('pathLength', '1');
       L.circleMarker(p.ll, { radius: 6, className: 'wm-dot', stroke: false, fillOpacity: 1, interactive: false }).addTo(map);
@@ -1064,11 +1089,12 @@
         const c = map.latLngToContainerPoint(p.ll), l = labs[i];
         l.style.left = c.x + 'px'; l.style.top = c.y + 'px';
         // не помещается справа — ставим плашку слева от точки
-        const left = c.x + 14 + l.offsetWidth > W_() - 8, dy = small && p.key === 'forest' ? 20 : small && p.key === 'garden' ? -20 : 0; // на телефоне точки ближе: разводим подписи
+        const left = c.x + 14 + l.offsetWidth > W_() - 8, dy = p.key === 'forest' ? -16 : p.key === 'garden' ? 16 : 0; // точки рядом: разводим подписи
         l.style.transform = left ? `translate(calc(-100% - 14px),calc(-50% + ${dy}px))` : `translate(14px,calc(-50% + ${dy}px))`;
       });
       const h = map.latLngToContainerPoint(HOME);
       homeLab.style.left = h.x + 'px'; homeLab.style.top = h.y + 'px';
+      syncBase();
     };
     placeMap();
     ScrollTrigger.addEventListener('refreshInit', () => { placeMap(); buildRoute(); });
@@ -1086,6 +1112,7 @@
 
     onWalk = t => {
       drawClock();
+      if (t > 14) loadBase(); // библиотека тяжёлая: грузим, только когда человек дошёл до квиза
       const on = t >= 26.5; if (on !== mapOn) { mapOn = on; xhEl.classList.toggle('map-read', on); }
     };
 
