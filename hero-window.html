@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" class="v-b">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,7 +21,7 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:var(--night);color:#fff}
-  body{font-family:'Oswald',system-ui,sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{font-family:'Medeo Sans',system-ui,sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden}
   body.is-loading{overflow:hidden}
   a{color:inherit;text-decoration:none}
   button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
@@ -114,7 +114,7 @@
     display:flex;flex-direction:column;gap:16px;padding:24px 28px;
     background:var(--c-paper);color:var(--c-ink);border:1px solid var(--c-ink);
     opacity:0;visibility:hidden;overflow:hidden;will-change:transform,opacity;
-    font-family:'Oswald',system-ui,sans-serif;font-weight:300;font-variant-numeric:tabular-nums}
+    font-family:'Medeo Sans',system-ui,sans-serif;font-weight:300;font-variant-numeric:tabular-nums}
   .calc.is-open{pointer-events:auto}
 
   :where(.calc) button,:where(.calc) input{font:inherit;color:inherit} /* :where — без веса, чтобы не перебивать .c-next и .c-send */
@@ -313,11 +313,11 @@
 
   /* следующий блок */
   .next{min-height:100vh;display:grid;place-items:center;background:#EEEBE4;color:#1E2320;padding:80px var(--gutter);text-align:center}
-  .next p{font-family:'Old Standard TT',serif;font-size:clamp(28px,4vw,56px);max-width:16ch;line-height:1.15}
+  .next p{font-size:clamp(28px,4vw,56px);max-width:16ch;line-height:1.15}
   .next{grid-template-rows:1fr auto}
   .next .note{font-size:12px;letter-spacing:.06em;color:#555C57}
 
-  /* ---------- вариант Б (?v=b): ЭТАЛОН в небе по центру, дом ниже, факты текстом внизу ---------- */
+  /* ---------- вариант Б: ЭТАЛОН в небе по центру, дом ниже, факты текстом внизу ---------- */
   /* своё фото (больше неба, дом ниже) — светлое и запечённо-затемнённое, как в А */
   .v-b .layer{background-image:url("assets/hero-b-light.jpg")}
   .v-b .layer--lit{background-image:url("assets/hero-b-dark.jpg")}
@@ -333,15 +333,6 @@
   .v-b .fact:nth-child(3){order:-1} /* «Ключи» слева, «Цена котлована» справа */
   .v-b .fact:nth-child(1){order:1}
 
-  /* переключатель вариантов для сравнения */
-  .ab{position:fixed;z-index:90;left:16px;top:92px; /* под шапкой: внизу стоят факты */display:flex;align-items:center;gap:2px;padding:3px;
-    background:rgba(243,235,221,.92);color:var(--ink);font-size:12px;letter-spacing:.06em}
-  .ab span{padding:0 8px 0 6px;color:#555C57}
-  .ab a{padding:5px 10px;color:var(--ink)}
-  .ab a[aria-current="true"]{background:var(--ink);color:#EEEBE4}
-  .ab a:not([aria-current="true"]):hover{background:rgba(30,35,32,.12)}
-  .ab{transition:opacity .3s}
-  .ab.is-away{opacity:0;pointer-events:none} /* только на первом экране — дальше не мешает квизу */
 
   @media (max-width:760px){
     .v-b .facts{flex-direction:column;align-items:center;gap:6px}
@@ -499,7 +490,6 @@
 
 <div class="xh" id="xh"><div class="xh-v" id="xhV"></div><div class="xh-h" id="xhH"></div><div class="xh-c" id="xhC"></div><div class="xh-read" id="xhR">x 0 · y 0</div></div>
 
-<nav class="ab" aria-label="Вариант первого экрана"><span>Вариант</span><a href="hero-window.html" id="abA">А</a><a href="hero-window.html?v=b" id="abB">Б</a></nav>
 
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/vendor/ScrollTrigger.min.js"></script>
@@ -529,11 +519,8 @@
   // фото 2000×1125; точки выносок и окно кв. 24 — в координатах фото
   // ?side — для сравнения: влёт в боковое окно; по умолчанию — горящее окно у центральной оси
   const SIDE = new URLSearchParams(location.search).has('side');
-  // ?v=b — вариант Б для сравнения: ЭТАЛОН в небе по центру, дом ниже, факты текстом внизу
-  const VB = new URLSearchParams(location.search).get('v') === 'b';
-  document.documentElement.classList.toggle('v-b', VB);
-  $$('.ab a').forEach(a => a.setAttribute('aria-current', String((a.id === 'abB') === VB)));
-  addEventListener('scroll', () => $('.ab').classList.toggle('is-away', scrollY > innerHeight * .3), { passive: true });
+  // выбран вариант Б: ЭТАЛОН в небе по центру, дом ниже, факты текстом внизу
+  const VB = true;
   const IMG_W = 2000, IMG_H = VB ? 1178 : 1125; // у фото Б другая пропорция (5760×3392)
   // участок фото под чёткий крупный план (дорисовка того же куска в 4K): А — window-closeup.jpg, Б — window-closeup-b.jpg
   const DETAIL = VB ? { x: 680, y: 526, w: 860, h: 484 } : { x: 650, y: 380, w: 880, h: 495 };
@@ -621,7 +608,7 @@
       const gap = asc * .32, inkTop = baseY - asc;
       // заголовок: низ его букв (с хвостом «у») — на gap выше верха букв ЭТАЛОН
       const tfs = parseFloat(getComputedStyle(title).fontSize), tc = document.createElement('canvas').getContext('2d');
-      tc.font = `200 ${tfs}px Oswald`;
+      tc.font = `200 ${tfs}px "Medeo Sans"`;
       const tm = tc.measureText(title.textContent), lh = tfs * 1.1;
       const tBase = (lh - tm.fontBoundingBoxAscent - tm.fontBoundingBoxDescent) / 2 + tm.fontBoundingBoxAscent;
       title.style.transform = 'none';
@@ -1089,7 +1076,7 @@
         const c = map.latLngToContainerPoint(p.ll), l = labs[i];
         l.style.left = c.x + 'px'; l.style.top = c.y + 'px';
         // не помещается справа — ставим плашку слева от точки
-        const left = c.x + 14 + l.offsetWidth > W_() - 8, dy = p.key === 'forest' ? -16 : p.key === 'garden' ? 16 : 0; // точки рядом: разводим подписи
+        const left = c.x + 14 + l.offsetWidth > W_() - 8, dy = p.key === 'forest' ? -16 : p.key === 'garden' ? 16 : small && p.key === 'metro' ? 26 : 0; // точки рядом: разводим подписи
         l.style.transform = left ? `translate(calc(-100% - 14px),calc(-50% + ${dy}px))` : `translate(14px,calc(-50% + ${dy}px))`;
       });
       const h = map.latLngToContainerPoint(HOME);
@@ -1295,7 +1282,7 @@
   // ждём шрифт слова, иначе размер и базовая линия посчитаются по запасному шрифту
   const fontReady = Promise.all([
     document.fonts.load('400 100px "Old Standard TT"', 'ЭТАЛОН'),
-    document.fonts.load('200 40px Oswald', 'Клубный')
+    document.fonts.load('200 40px "Medeo Sans"', 'Клубный')
   ]);
   Promise.race([fontReady, new Promise(r => setTimeout(r, 2000))]).then(boot);
 })();
