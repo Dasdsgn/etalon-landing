@@ -215,6 +215,7 @@
   .header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line);transform:scaleX(var(--hl,0));transform-origin:center}
   .burger{width:44px;height:44px;display:grid;align-content:center;gap:7px;margin-left:-6px;padding:6px}
   .burger span{display:block;height:1px;background:#fff;transition:transform .5s var(--ease)}
+  .burger span:nth-child(2){width:75%}
   .burger:hover span:first-child{transform:translateX(6px)}
   .burger:hover span:last-child{transform:translateX(-6px)}
   .logo-slot{position:absolute;left:0;right:0;top:.21em;bottom:0;margin:auto; /* top: середина самих букв, а не строки */width:max-content;height:max-content;
