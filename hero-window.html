@@ -6,6 +6,7 @@
 <title>Эталон — первый экран</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <!-- неблокирующе: медленный Google Fonts не должен держать чёрный экран -->
 <link id="gf" href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400&family=Old+Standard+TT:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
@@ -295,13 +296,16 @@
   .w-band .w-tick span{position:absolute;bottom:13px;left:0;transform:translateX(-50%);font-size:12px;letter-spacing:.04em;color:var(--cream);white-space:nowrap}
   .w-band .w-tick:last-child span{left:1px;transform:translateX(-100%)} /* «метро» у края: подпись внутрь */
   .w-map{position:absolute;inset:0;background:#171B19;opacity:0;visibility:hidden}
-  .w-map svg{position:absolute;inset:0;width:100%;height:100%}
-  .w-map-head{position:absolute;left:var(--gutter);top:96px;pointer-events:none}
+  #wLeaflet{position:absolute;inset:0;z-index:0;pointer-events:none;background:#E8E4DA}
+  #wLeaflet .leaflet-tile-pane{filter:saturate(.9) brightness(.97)}
+  #wLeaflet .leaflet-control-attribution{pointer-events:auto;font-size:10px;font-family:inherit}
+  .w-map-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(20,22,20,.82) 0,rgba(20,22,20,.5) 18%,rgba(20,22,20,0) 32%)}
+  .w-map-head{position:absolute;z-index:2;left:var(--gutter);top:96px;pointer-events:none}
   .w-map-head h2{margin:0;font-weight:200;font-size:clamp(26px,3.2vw,48px);line-height:1.1}
   .w-map-head p{margin:8px 0 0;font-size:clamp(13px,1.2vw,17px);color:var(--cream)}
-  .wm-lab{position:absolute;font-size:13px;letter-spacing:.03em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;transform:translate(14px,-50%);opacity:0}
-  .wm-home{position:absolute;font-family:'Old Standard TT',serif;font-size:clamp(16px,1.6vw,24px);letter-spacing:.1em;color:#fff;transform:translate(-50%,18px);white-space:nowrap}
-  .wm-route{fill:none;stroke:var(--signal);stroke-width:2;stroke-dasharray:1;stroke-dashoffset:1}
+  .wm-lab{position:absolute;z-index:2;box-shadow:0 0 0 1px rgba(30,35,32,.25);font-size:13px;letter-spacing:.03em;color:var(--ink);background:var(--plate);padding:4px 9px 5px;white-space:nowrap;transform:translate(14px,-50%);opacity:0}
+  .wm-home{position:absolute;z-index:2;font-family:'Old Standard TT',serif;font-size:clamp(15px,1.5vw,22px);letter-spacing:.1em;color:#fff;background:var(--ink);padding:3px 10px 4px;transform:translate(-50%,16px);white-space:nowrap}
+  .wm-route{fill:none;stroke:var(--signal);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
   .wm-dot{fill:var(--signal);opacity:0}
   .route{position:absolute;inset:0;width:100%;height:100%;z-index:9;pointer-events:none;overflow:visible}
   .route path{fill:none;stroke:var(--signal);stroke-width:1.5;stroke-dasharray:1;stroke-dashoffset:1;opacity:0}
@@ -437,8 +441,9 @@
       <div class="w-cap" id="capMetro"><b>Метро ВДНХ</b><span>15 минут пешком от двери</span></div>
 
       <div class="w-map" id="wMap">
-        <svg id="wMapSvg" aria-hidden="true"></svg>
-        <div class="w-map-head"><h2>Всё рядом — и всё на карте</h2><p id="wMapHint">Наведите курсор: покажет, сколько идти от дома</p></div>
+        <div id="wLeaflet" aria-hidden="true"></div>
+        <div class="w-map-shade"></div>
+        <div class="w-map-head"><h2>Всё рядом — и всё на карте</h2><p id="wMapHint">Наведите курсор на любую точку: покажет, сколько идти от дома</p></div>
       </div>
 
       <div class="w-clock" id="wClock" aria-hidden="true">18:04</div>
@@ -498,6 +503,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 (() => {
   gsap.registerPlugin(ScrollTrigger);
@@ -879,7 +885,7 @@
     let onWalk = null; // кадр блока прогулки (задаётся ниже)
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=1410%', pin: true, scrub: .5, anticipatePin: 1, invalidateOnRefresh: true },
+      scrollTrigger: { trigger: '#stage', start: 'top top', end: '+=1330%', pin: true, scrub: .5, anticipatePin: 1, invalidateOnRefresh: true },
       // квиз кликабелен, только когда лист полностью поднялся
       onUpdate: () => {
         const open = tl.time() >= 14.9 && tl.time() < 16.6; // дальше лист уезжает
@@ -959,11 +965,15 @@
     };
     ['wheel', 'touchstart', 'keydown'].forEach(ev => addEventListener(ev, () => { if (auto) { auto.kill(); auto = null; } }, { passive: true }));
 
-    const lift = { t: 0 };
+    const lift = { t: 0 }, curtain = { t: 0 }; // curtain: чистый лист разворачивается на весь экран
     const placeCalc = () => {
       const from = paperQuad(), to = openQuad(), t = lift.t, k = t * t * (3 - 2 * t);
       const arc = Math.sin(Math.PI * t) * hero.clientHeight * .06; // лист приподнимается дугой, а не едет по прямой
-      const q = from.map((p, i) => [p[0] + (to[i][0] - p[0]) * k, p[1] + (to[i][1] - p[1]) * k - arc]);
+      const W = hero.clientWidth, H = hero.clientHeight, full = [[0, 0], [W, 0], [W, H], [0, H]], c = curtain.t * curtain.t * (3 - 2 * curtain.t);
+      const q = from.map((p, i) => {
+        const x = p[0] + (to[i][0] - p[0]) * k, y = p[1] + (to[i][1] - p[1]) * k - arc;
+        return [x + (full[i][0] - x) * c, y + (full[i][1] - y) * c];
+      });
       calc.style.transform = quadMatrix(q, calc.offsetWidth, calc.offsetHeight);
     };
 
@@ -1025,43 +1035,42 @@
       fillEl.style.transform = `scaleX(${clock.m / 15})`; dotEl.style.left = (clock.m / 15 * 100) + '%';
     };
 
-    // карта-схема района: дом, лес, сад, школа, метро. Масштаб: .6 единицы на метр
-    const HOME = [800, 470], M_PER = 1 / .6;
+    // настоящая карта района (OpenStreetMap); пешие маршруты заранее посчитаны по улицам.
+    // Дом, сад и школа условные — проект учебный. Карта только показывается: скролл и клики идут мимо неё
+    const HOME = [55.8235, 37.6258];
+    const ROUTES = {"forest":[[55.8235,37.62601],[55.8237,37.62602],[55.82375,37.62594],[55.82379,37.6258],[55.82389,37.6258],[55.82395,37.62457],[55.824,37.62389],[55.82404,37.62338],[55.82406,37.62338],[55.8241,37.62339],[55.82415,37.62339],[55.82416,37.62339],[55.82418,37.6231],[55.82418,37.62296],[55.82419,37.62291],[55.8242,37.62267],[55.82421,37.62237],[55.82423,37.62199],[55.82424,37.62194],[55.82424,37.62188],[55.82425,37.62156],[55.82427,37.62128],[55.82428,37.62127],[55.82428,37.62121],[55.82428,37.62117],[55.82429,37.62105],[55.8243,37.62091],[55.8243,37.62083],[55.82447,37.62087],[55.8247,37.62092],[55.82481,37.62094],[55.82524,37.62103],[55.82575,37.62115]],"garden":[[55.8235,37.62601],[55.8237,37.62602],[55.82375,37.62594],[55.82379,37.6258],[55.82389,37.6258],[55.82397,37.62582],[55.82404,37.62582],[55.82404,37.62588],[55.8248,37.62597],[55.82507,37.626],[55.82507,37.62597],[55.82509,37.6255],[55.82523,37.62521],[55.82524,37.62496],[55.82529,37.62503],[55.82552,37.62507],[55.82554,37.62468],[55.82556,37.62431],[55.82557,37.62393],[55.82559,37.62356],[55.8256,37.62328],[55.82563,37.62329],[55.82563,37.62337],[55.82575,37.62368]],"school":[[55.8235,37.62601],[55.8237,37.62602],[55.82375,37.62594],[55.82379,37.6258],[55.82389,37.6258],[55.82395,37.62457],[55.824,37.62389],[55.82404,37.62338],[55.82406,37.62319],[55.82373,37.62254],[55.82356,37.62253],[55.82292,37.62251],[55.82284,37.62251],[55.82279,37.62251],[55.82279,37.62263],[55.82249,37.62258],[55.82239,37.62259],[55.82234,37.62258],[55.82214,37.62258],[55.82213,37.62258],[55.82211,37.62258],[55.82209,37.62258],[55.82208,37.62258],[55.82193,37.62257],[55.82188,37.62257],[55.82185,37.62257],[55.82173,37.62257],[55.82173,37.62277],[55.82164,37.62277],[55.82159,37.62277],[55.82154,37.62276],[55.82144,37.62276],[55.82139,37.62276],[55.82134,37.62276],[55.82132,37.62276],[55.82124,37.62276],[55.82124,37.62264],[55.82122,37.62264],[55.82113,37.62264],[55.82108,37.62264],[55.82102,37.62264],[55.8209,37.62264],[55.82089,37.62264],[55.82084,37.62263],[55.82079,37.62263],[55.82075,37.62263],[55.82054,37.62283],[55.82054,37.62306],[55.82053,37.62321],[55.82047,37.62328],[55.82023,37.62375],[55.82023,37.62384],[55.8204,37.62386]],"metro":[[55.8235,37.62601],[55.8237,37.62602],[55.82379,37.62617],[55.82378,37.62683],[55.82385,37.62683],[55.82384,37.62692],[55.82384,37.62708],[55.82383,37.62721],[55.82379,37.62806],[55.82377,37.62839],[55.82376,37.62859],[55.82375,37.62879],[55.82372,37.62962],[55.82372,37.62968],[55.82372,37.62973],[55.82371,37.62991],[55.82371,37.62996],[55.8237,37.63],[55.8237,37.63008],[55.8237,37.63016],[55.8237,37.63017],[55.82369,37.63024],[55.82366,37.63091],[55.82365,37.63092],[55.82366,37.63095],[55.82366,37.63102],[55.82365,37.6311],[55.82364,37.63112],[55.82365,37.63114],[55.82362,37.63194],[55.82361,37.63221],[55.8236,37.6324],[55.82357,37.63255],[55.82354,37.63268],[55.82347,37.63291],[55.82323,37.63359],[55.82322,37.63363],[55.82312,37.63396],[55.82308,37.63406],[55.82301,37.6342],[55.82289,37.63437],[55.8229,37.63438],[55.82291,37.63444],[55.82293,37.63449],[55.82294,37.63453],[55.82295,37.63456],[55.82296,37.63459],[55.82297,37.63461],[55.82259,37.63504],[55.82255,37.63508],[55.82252,37.63513],[55.82251,37.63516],[55.82247,37.63518],[55.82234,37.6353],[55.8223,37.63533],[55.82227,37.63537],[55.82225,37.63538],[55.82223,37.6354],[55.82221,37.63542],[55.82219,37.63544],[55.82219,37.63554],[55.82212,37.63555],[55.8221,37.63555],[55.82207,37.63556],[55.82201,37.63556],[55.822,37.63561],[55.82198,37.63566],[55.82197,37.63571],[55.82196,37.63573],[55.82195,37.63578],[55.82194,37.63583],[55.82193,37.63587],[55.82183,37.63585],[55.82172,37.6359],[55.82128,37.63629],[55.82122,37.63634],[55.82124,37.63641],[55.82126,37.63649],[55.82128,37.63661],[55.8213,37.63679],[55.8213,37.63685],[55.8213,37.63691],[55.82123,37.6372],[55.82121,37.63733],[55.82118,37.63761],[55.82118,37.63773],[55.82116,37.63818],[55.82115,37.63819],[55.82114,37.63819],[55.82112,37.63822],[55.82111,37.63825],[55.8211,37.63828],[55.82111,37.63832],[55.82109,37.63833],[55.8208,37.63847],[55.82075,37.63849],[55.82072,37.6385],[55.82071,37.63854],[55.8207,37.6386],[55.82072,37.63865],[55.82058,37.63898],[55.82049,37.6391],[55.82046,37.63924],[55.82045,37.63937],[55.82043,37.63955],[55.82042,37.63965],[55.82039,37.63972],[55.82034,37.63991],[55.82032,37.63998],[55.82031,37.63997],[55.82031,37.63997],[55.82029,37.63995],[55.82028,37.63994],[55.82025,37.6399],[55.82024,37.63989],[55.8202,37.63985],[55.82019,37.63984],[55.82015,37.6398],[55.82011,37.63976],[55.8199,37.64048],[55.81983,37.64071],[55.81979,37.64087],[55.81976,37.64084],[55.81972,37.6408],[55.81971,37.64079],[55.81967,37.64075],[55.81966,37.64074],[55.81962,37.6407],[55.81961,37.64069],[55.8196,37.64067],[55.81959,37.64067],[55.81956,37.64064],[55.81953,37.64074],[55.81938,37.64095],[55.81936,37.64099],[55.8194,37.64106],[55.81944,37.64108],[55.81946,37.64108],[55.81948,37.64108],[55.81957,37.64105],[55.81963,37.64103],[55.81967,37.64104],[55.81969,37.64105]]};
     const POINTS = [
-      { x: 980, y: 300, name: 'Лес', text: 'до леса 420 м · 6 минут', route: 'M800 470 C860 420,900 380,980 300' },
-      { x: 640, y: 310, name: 'Детский сад', text: 'до сада 380 м · 5 минут', route: 'M800 470 C760 410,700 370,640 310' },
-      { x: 1060, y: 760, name: 'Школа', text: 'до школы 650 м · 8 минут', route: 'M800 470 C880 560,980 650,1060 760' },
-      { x: 250, y: 840, name: 'Метро ВДНХ', text: 'до метро ВДНХ 15 минут пешком', route: 'M800 470 C700 560,500 690,250 840' }
-    ];
-    const mapSvg = $('#wMapSvg'), mapEl = $('#wMap');
-    const hills = [0, 1, 2, 3, 4, 5].map(i => {
-      const k = 1 - i * .14, cx = 1230, cy = 170;
-      return `<ellipse cx="${cx}" cy="${cy}" rx="${520 * k}" ry="${300 * k}" transform="rotate(${-12 + i * 3} ${cx} ${cy})" fill="none" stroke="#3D5C4A" stroke-width="1"/>`;
-    }).join('');
-    const streets = ['M0 620 C400 600,1000 680,1600 640', 'M520 0 C540 300,500 600,470 900', 'M0 300 C400 340,700 400,1600 380', 'M1000 900 C960 700,860 560,800 470'];
-    mapSvg.innerHTML =
-      `<clipPath id="wmForest"><path d="M820 0 L1600 0 L1600 560 C1400 520,1160 470,990 330 C920 260,860 120,820 0Z"/></clipPath>` +
-      `<path d="M820 0 L1600 0 L1600 560 C1400 520,1160 470,990 330 C920 260,860 120,820 0Z" fill="#26392E"/><g clip-path="url(#wmForest)">${hills}</g>` +
-      streets.map(d => `<path d="${d}" fill="none" stroke="#343B37" stroke-width="2"/>`).join('') +
-      POINTS.map(p => `<path class="wm-route" pathLength="1" d="${p.route}"/><circle class="wm-dot" cx="${p.x}" cy="${p.y}" r="6"/>`).join('') +
-      `<circle cx="800" cy="470" r="7" fill="#fff"/><circle cx="800" cy="470" r="16" fill="none" stroke="#fff" stroke-width="1"/>`;
-    const labs = POINTS.map(p => { const el = document.createElement('div'); el.className = 'wm-lab'; el.textContent = p.name; mapEl.appendChild(el); return el; });
+      { key: 'forest', label: 'Лес · 6 минут', text: 'до леса 6 минут пешком' },
+      { key: 'garden', label: 'Сад · 5 минут', text: 'до сада 5 минут пешком' },
+      { key: 'school', label: 'Школа · 8 минут', text: 'до школы 8 минут пешком' },
+      { key: 'metro', label: 'Метро ВДНХ · 15 минут', text: 'до метро ВДНХ 15 минут пешком' }
+    ].map(p => ({ ...p, ll: ROUTES[p.key][ROUTES[p.key].length - 1] }));
+    const mapEl = $('#wMap');
+    const map = L.map('wLeaflet', { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false,
+      boxZoom: false, keyboard: false, zoomSnap: W_() < 760 ? .25 : 1, fadeAnimation: false, zoomAnimation: false }).setView(HOME, 15); // без центра слои не добавить
+    map.attributionControl.setPrefix(false);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© участники OpenStreetMap' }).addTo(map);
+    POINTS.forEach(p => {
+      L.polyline(ROUTES[p.key], { className: 'wm-route', interactive: false }).addTo(map).getElement().setAttribute('pathLength', '1');
+      L.circleMarker(p.ll, { radius: 6, className: 'wm-dot', stroke: false, fillOpacity: 1, interactive: false }).addTo(map);
+    });
+    L.circleMarker(HOME, { radius: 7, color: '#1E2320', weight: 2, fillColor: '#fff', fillOpacity: 1, interactive: false }).addTo(map);
+    const labs = POINTS.map(p => { const el = document.createElement('div'); el.className = 'wm-lab'; el.textContent = p.label; mapEl.appendChild(el); return el; });
     const homeLab = document.createElement('div'); homeLab.className = 'wm-home'; homeLab.textContent = 'ЭТАЛОН'; mapEl.appendChild(homeLab);
-    let vb = null;
     const placeMap = () => {
-      // на телефоне кадр уже: показываем только район вокруг точек и вписываем его целиком
-      const small = W_() < 760, v = small ? [200, 180, 940, 720] : [0, 0, 1600, 900];
-      mapSvg.setAttribute('viewBox', v.join(' '));
-      mapSvg.setAttribute('preserveAspectRatio', small ? 'xMidYMid meet' : 'xMidYMid slice');
-      const k = small ? Math.min(W_() / v[2], H_() / v[3]) : Math.max(W_() / v[2], H_() / v[3]);
-      vb = { k, ox: (W_() - v[2] * k) / 2 - v[0] * k, oy: (H_() - v[3] * k) / 2 - v[1] * k };
+      map.invalidateSize(false);
+      const small = W_() < 760;
+      map.fitBounds(L.latLngBounds([HOME, ...Object.values(ROUTES).flat()]), { animate: false,
+        paddingTopLeft: small ? [20, 150] : [90, 190], paddingBottomRight: small ? [20, 50] : [230, 60] });
       POINTS.forEach((p, i) => {
-        const lx = vb.ox + p.x * k, l = labs[i];
-        l.style.left = lx + 'px'; l.style.top = (vb.oy + p.y * k) + 'px';
+        const c = map.latLngToContainerPoint(p.ll), l = labs[i];
+        l.style.left = c.x + 'px'; l.style.top = c.y + 'px';
         // не помещается справа — ставим плашку слева от точки
-        l.style.transform = lx + 14 + l.offsetWidth > W_() - 8 ? 'translate(calc(-100% - 14px),-50%)' : '';
+        const left = c.x + 14 + l.offsetWidth > W_() - 8, dy = small && p.key === 'forest' ? 20 : small && p.key === 'garden' ? -20 : 0; // на телефоне точки ближе: разводим подписи
+        l.style.transform = left ? `translate(calc(-100% - 14px),calc(-50% + ${dy}px))` : `translate(14px,calc(-50% + ${dy}px))`;
       });
-      homeLab.style.left = (vb.ox + HOME[0] * k) + 'px'; homeLab.style.top = (vb.oy + HOME[1] * k) + 'px';
+      const h = map.latLngToContainerPoint(HOME);
+      homeLab.style.left = h.x + 'px'; homeLab.style.top = h.y + 'px';
     };
     placeMap();
     ScrollTrigger.addEventListener('refreshInit', () => { placeMap(); buildRoute(); });
@@ -1069,59 +1078,55 @@
     // курсор на карте меряет расстояние от дома
     const xhEl = $('#xh'), xhRead = $('#xhR'); let mapOn = false;
     cursorHook = (x, y) => {
-      if (!mapOn || !vb) return;
-      const r = hero.getBoundingClientRect(), mx = (x - r.left - vb.ox) / vb.k, my = (y - r.top - vb.oy) / vb.k;
-      const near = POINTS.find(p => Math.hypot(p.x - mx, p.y - my) < 44);
+      if (!mapOn) return;
+      const r = hero.getBoundingClientRect(), pt = L.point(x - r.left, y - r.top);
+      const near = POINTS.find(p => map.latLngToContainerPoint(p.ll).distanceTo(pt) < 26);
       if (near) { xhRead.textContent = near.text; return; }
-      const m = Math.hypot(HOME[0] - mx, HOME[1] - my) * M_PER;
-      xhRead.textContent = m < 25 ? 'здесь вы дома' : `${Math.round(m / 10) * 10} м от дома · ${Math.max(1, Math.round(m / 80))} мин пешком`;
+      const m = map.distance(HOME, map.containerPointToLatLng(pt));   // по прямой
+      xhRead.textContent = m < 25 ? 'здесь вы дома' : `${Math.round(m / 10) * 10} м от дома · ${Math.max(1, Math.round(m * 1.25 / 80))} мин пешком`;
     };
 
     onWalk = t => {
       drawClock();
-      const on = t >= 29; if (on !== mapOn) { mapOn = on; xhEl.classList.toggle('map-read', on); }
+      const on = t >= 26.5; if (on !== mapOn) { mapOn = on; xhEl.classList.toggle('map-read', on); }
     };
 
     const scene = (id, t0, dur = .5) => tl.to(id, { autoAlpha: 1, duration: dur }, t0);
     const show = (id, t0, dur = .4) => tl.fromTo(id, { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: dur, ease: 'power2.out', immediateRender: false }, t0);
     const hide = (id, t0, dur = .3) => tl.to(id, { autoAlpha: 0, duration: dur }, t0);
 
-    // лист уезжает вверх; размытие спадает, взгляд поднимается от стола
-    tl.to('#calcWrap', { y: () => -H_() * 1.1, duration: 1, ease: 'power2.in' }, 16.5)
-      .to(calc, { autoAlpha: 0, duration: .01 }, 17.5)
-      .to('#roomBlur', { opacity: 0, duration: .9 }, 17)
-      .to(roomCam, { scale: 1, duration: 1.2, ease: 'power2.inOut' }, 17)
-      // камера летит в окно
-      .set(roomCam, { transformOrigin: () => winPt().map(v => v + 'px').join(' ') }, 18.25)
-      .to(roomCam, { scale: 5, duration: 1.4, ease: 'power2.in' }, 18.3)
-      // сквозь окно вниз, во двор: кадр калитки проявляется, опускаясь
-      .to('#walk', { autoAlpha: 1, duration: .7 }, 19.3);
-    tl.to('#wGate', { autoAlpha: 1, duration: .01 }, 19.3)
-      .fromTo('#wGate', { scale: 1.3, yPercent: -9 }, { scale: 1, yPercent: 0, duration: 1.4, ease: 'power2.out', immediateRender: false }, 19.3)
-      .to(routeB, { strokeDashoffset: 0, opacity: 1, duration: .6 }, 20.3)
-      .to(routeB, { opacity: 0, duration: .3 }, 21.2);
-    show('#wTitle', 20.4); show('#wClock', 20.6); show('#wBand', 20.6);
-    hide('#wTitle', 21.2);
+    // лист-занавес: цифры гаснут, чистый лист разворачивается на весь экран и уходит вверх, за ним уже двор
+    tl.to('.calc-head, .calc-quiz', { opacity: 0, duration: .25 }, 16.5)
+      .to(curtain, { t: 1, duration: .8, ease: 'power2.inOut' }, 16.7)
+      .to('#walk', { autoAlpha: 1, duration: .01 }, 17.5)
+      .to('#wGate', { autoAlpha: 1, duration: .01 }, 17.5)
+      .fromTo('#wGate', { scale: 1.12 }, { scale: 1, duration: 1.1, ease: 'power2.out', immediateRender: false }, 17.6)
+      .to('#calcWrap', { y: () => -H_() * 1.05, duration: .9, ease: 'power2.inOut' }, 17.6)
+      .to(calc, { autoAlpha: 0, duration: .01 }, 18.5)
+      .to(routeB, { strokeDashoffset: 0, opacity: 1, duration: .6 }, 18.5)
+      .to(routeB, { opacity: 0, duration: .3 }, 19.4);
+    show('#wTitle', 18.6); show('#wClock', 18.8); show('#wBand', 18.8);
+    hide('#wTitle', 19.4);
 
     // прогулка: скролл = время
-    tl.to(clock, { m: 5, duration: 1 }, 21.4);
-    scene('#wGarden', 22); show('#capGarden', 22.2); hide('#capGarden', 22.9);
-    tl.to(clock, { m: 6, duration: .4 }, 23);
-    scene('#wForest', 23, .7);                     // лес — главный кадр: дольше всех
-    tl.fromTo('#wForest', { scale: 1.08 }, { scale: 1, duration: 2.2, immediateRender: false }, 23);
-    show('#wPhrase', 23.6, .5); hide('#wPhrase', 24.9);
-    tl.to(clock, { m: 8, duration: .6 }, 25);
-    scene('#wSchool', 25.2); show('#capSchool', 25.4); hide('#capSchool', 26.2);
-    tl.to(clock, { m: 15, duration: 1 }, 26.3);
-    scene('#wMetro', 26.6); show('#capMetro', 26.9); hide('#capMetro', 27.8);
+    tl.to(clock, { m: 5, duration: 1 }, 19.6);
+    scene('#wGarden', 20.2); show('#capGarden', 20.4); hide('#capGarden', 21.1);
+    tl.to(clock, { m: 6, duration: .4 }, 21.2);
+    scene('#wForest', 21.2, .7);                   // лес — главный кадр: дольше всех
+    tl.fromTo('#wForest', { scale: 1.08 }, { scale: 1, duration: 2.2, immediateRender: false }, 21.2);
+    show('#wPhrase', 21.8, .5); hide('#wPhrase', 23.1);
+    tl.to(clock, { m: 8, duration: .6 }, 23.2);
+    scene('#wSchool', 23.4); show('#capSchool', 23.6); hide('#capSchool', 24.4);
+    tl.to(clock, { m: 15, duration: 1 }, 24.5);
+    scene('#wMetro', 24.8); show('#capMetro', 25.1); hide('#capMetro', 26);
 
     // финал: вся карта целиком, маршруты рисуются от дома
-    hide('#wClock', 27.9); hide('#wBand', 27.9);
-    tl.to('#wMap', { autoAlpha: 1, duration: .6 }, 27.9);
-    $$('.wm-route').forEach((r, i) => tl.to(r, { strokeDashoffset: 0, duration: .7 }, 28.4 + i * .15));
-    $$('.wm-dot').forEach((d, i) => tl.to(d, { opacity: 1, duration: .15 }, 28.9 + i * .15));
-    labs.forEach((l, i) => tl.to(l, { opacity: 1, duration: .2 }, 28.95 + i * .15));
-    tl.to({}, { duration: 2 }, 29.6); // пауза: можно поводить курсором по карте
+    hide('#wClock', 26.1); hide('#wBand', 26.1);
+    tl.to('#wMap', { autoAlpha: 1, duration: .6 }, 26.1);
+    $$('.wm-route').forEach((r, i) => tl.to(r, { strokeDashoffset: 0, duration: .7 }, 26.6 + i * .15));
+    $$('.wm-dot').forEach((d, i) => tl.to(d, { opacity: 1, duration: .15 }, 27.1 + i * .15));
+    labs.forEach((l, i) => tl.to(l, { opacity: 1, duration: .2 }, 27.15 + i * .15));
+    tl.to({}, { duration: 2 }, 27.8); // пауза: можно поводить курсором по карте
   }
 
   // ---------- блок 02: механика квиза из «Эталон: полная сумма по шагам» ----------
