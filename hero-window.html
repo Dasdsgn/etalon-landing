@@ -211,11 +211,7 @@
   .phone{text-align:right;line-height:1.25}
   .phone b{display:block;font-weight:300;font-size:15px;letter-spacing:.06em}
   .phone small{font-size:11px;letter-spacing:.05em;opacity:.7}
-  .btn-call{position:relative;display:inline-flex;align-items:center;gap:8px;padding-bottom:6px;font-size:14px;letter-spacing:.01em;color:#fff;border-bottom:1px solid #fff;white-space:nowrap}
-  .call-dot{width:20px;height:20px;border-radius:50%;background:#fff;display:grid;place-items:center;transition:transform .6s var(--ease)}
-  .call-dot svg{width:9px;height:9px}
-  .btn-call:hover .call-dot{transform:scale(1.25)}
-  .btn-call span{position:relative}
+  .btn-call{position:relative;display:inline-flex;align-items:center;gap:8px;padding-bottom:6px;font-size:14px;letter-spacing:.01em;color:#fff;white-space:nowrap;will-change:transform}
   .reveal{display:inline-block;overflow:hidden;vertical-align:top}
   .reveal > *{display:inline-block}
 
@@ -227,18 +223,20 @@
 
   /* кнопка: при наведении под линией выезжают засечки линейки */
   .cta{position:relative;display:inline-flex;align-items:center;gap:14px;padding:8px 0 14px;font-size:clamp(17px,1.6vw,24px);letter-spacing:.06em;will-change:transform}
-  .cta::after{content:"";position:absolute;left:0;right:0;bottom:0;height:8px;
+  .cta::after,.btn-call::after{content:"";position:absolute;left:0;right:0;bottom:0;height:8px;
     background:
       linear-gradient(currentColor,currentColor) left bottom / 100% 1px no-repeat,
       repeating-linear-gradient(90deg,currentColor 0 1px,transparent 1px 10px) left bottom / 0% 8px no-repeat;
     transition:background-size .5s cubic-bezier(.2,.7,.2,1)}
-  .cta:hover::after,.cta:focus-visible::after{background-size:100% 1px,100% 8px}
+  .cta:hover::after,.cta:focus-visible::after,.btn-call:hover::after,.btn-call:focus-visible::after{background-size:100% 1px,100% 8px}
+  .btn-call .cta-dot{width:20px;height:20px}
+  .btn-call .cta-dot svg{width:9px;height:9px}
   .cta-dot{position:relative;width:28px;height:28px;border-radius:50%;background:#fff;display:grid;place-items:center;overflow:hidden;transition:transform .6s var(--ease)}
   .cta-dot svg{width:13px;height:13px;transition:transform .6s var(--ease)}
   .cta-dot svg + svg{position:absolute;transform:translateX(-24px)}
-  .cta:hover .cta-dot{transform:scale(1.25)}
-  .cta:hover .cta-dot svg:first-child{transform:translateX(24px)}
-  .cta:hover .cta-dot svg + svg{transform:none}
+  .cta:hover .cta-dot,.btn-call:hover .cta-dot{transform:scale(1.25)}
+  .cta:hover .cta-dot svg:first-child,.btn-call:hover .cta-dot svg:first-child{transform:translateX(24px)}
+  .cta:hover .cta-dot svg + svg,.btn-call:hover .cta-dot svg + svg{transform:none}
 
   /* три факта над словом (bottom ставит JS по верху слова) */
   .facts{position:absolute;z-index:8;left:var(--gutter);right:var(--gutter);bottom:40%;
@@ -341,14 +339,15 @@
   @media (max-width:760px){ :root{--hh:76px} }
   @media (min-width:761px){
     .header::after{background:#BDBDBD}
-    .burger{position:absolute;left:calc(69 * var(--u));top:calc(34 * var(--u));width:calc(37 * var(--u));height:calc(25 * var(--u));margin:0;padding:0;align-content:space-between;gap:0}
+    .burger{position:absolute;left:calc(64 * var(--u));top:calc(33.5 * var(--u));width:calc(37 * var(--u));height:calc(26 * var(--u));margin:0;padding:0;align-content:space-between;gap:0}
     .header-right{display:block;margin:0}
     .phone{position:absolute;left:calc(1021 * var(--u));top:calc(27 * var(--u));text-align:left;line-height:normal}
     .phone b{font-weight:400;font-size:max(12px,calc(17 * var(--u)));letter-spacing:.01em}
     .phone small{display:block;margin-top:calc(2 * var(--u));font-weight:300;font-size:max(10px,calc(12 * var(--u)));letter-spacing:.02em;opacity:1}
-    .btn-call{position:absolute;left:calc(1222 * var(--u));top:calc(33 * var(--u));gap:calc(9 * var(--u));padding-bottom:calc(6 * var(--u));font-weight:300;font-size:max(13px,calc(16 * var(--u)))}
-    .call-dot{width:calc(20 * var(--u));height:calc(20 * var(--u))}
-    .call-dot svg{width:calc(9 * var(--u));height:calc(9 * var(--u))}
+    .btn-call{position:absolute;right:calc(64 * var(--u));top:calc(33 * var(--u));align-items:flex-start;gap:calc(9 * var(--u));padding-bottom:calc(7 * var(--u));font-weight:300;font-size:max(13px,calc(16 * var(--u)))}
+    .btn-call .cta-dot{width:calc(20 * var(--u));height:calc(20 * var(--u));margin-top:calc(1 * var(--u))}
+    .btn-call .cta-dot svg{width:calc(9 * var(--u));height:calc(9 * var(--u))}
+    .logo-slot{font-size:max(28px,calc(38 * var(--u)))}
     .v-b .center .title{font-weight:200;font-size:max(24px,calc(35 * var(--u)));letter-spacing:-.02em;line-height:normal}
     .name{letter-spacing:0}
     .name .ch{margin-right:-.066em} /* −6% как в макете, плюс кернинг, которого нет у отдельных букв; не letter-spacing — overflow обрежет букве край */
@@ -356,6 +355,7 @@
     .cta-dot{width:calc(20 * var(--u));height:calc(20 * var(--u));margin-top:calc(3 * var(--u))}
     .cta-dot svg{width:calc(9 * var(--u));height:calc(9 * var(--u))}
     .v-b .facts{left:calc(64 * var(--u));right:calc(64 * var(--u));bottom:calc(25 * var(--u))}
+    .v-b .fact:nth-child(3){margin-left:-.04em} /* у буквы К свой отступ слева: край текста ровно под полосками */
     .v-b .fact{font-weight:300;font-size:max(14px,calc(24 * var(--u)));line-height:1.5;letter-spacing:0}
   }
   @media (max-width:1023px){ .phone{display:none} } /* иначе наедет на ссылку: шрифт на таких ширинах упирается в минимум */
@@ -373,7 +373,7 @@
     .fact:nth-child(n){justify-self:center;padding:8px 16px;font-size:15px}
     .fact:nth-child(2){display:none}
     .co-hide-sm{display:none}
-    .logo-slot{font-size:20px;left:calc(var(--gutter) + 52px);right:auto;margin:auto 0}
+    .logo-slot{font-size:24px;left:calc(var(--gutter) + 52px);right:auto;margin:auto 0}
   }
   @media (prefers-reduced-motion:reduce){
     .grain,.scroll-hint i::after{animation:none}
@@ -479,7 +479,7 @@
           <span class="reveal"><b>+7(495) 566-23-86</b></span><br>
           <span class="reveal"><small>Ежедневно с 9:00 до 21:00</small></span>
         </a>
-        <a class="btn-call" href="#"><span>Заказать звонок</span><span class="call-dot" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke="#1a1510" stroke-width="1.6"><path d="M1 7h11M7.5 2.5 12 7l-4.5 4.5"/></svg></span></a>
+        <a class="btn-call" href="#"><span>Заказать звонок</span><span class="cta-dot" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke="#1a1510" stroke-width="1.6"><path d="M1 7h11M7.5 2.5 12 7l-4.5 4.5"/></svg><svg viewBox="0 0 14 14" fill="none" stroke="#1a1510" stroke-width="1.6"><path d="M1 7h11M7.5 2.5 12 7l-4.5 4.5"/></svg></span></a>
       </div>
     </header>
 
@@ -612,7 +612,7 @@
     baseline = fd + (size - fa - fd) / 2; // от низа строки до базовой линии
 
     // слово опускаем к низу экрана: подпись под линейкой — в 24 px от края
-    nameEl.style.bottom = (fig ? hero.clientHeight - (figTop + 42 * U + fa) - baseline : VB ? hero.clientHeight * .58 - baseline : 56 - baseline) + 'px'; // Б: базовая линия на 42% высоты
+    nameEl.style.bottom = (fig ? hero.clientHeight - (figTop + 177 * U) - baseline /* базовая линия на Y 360 макета: браузер считает отступ над буквами иначе, чем Фигма */ : VB ? hero.clientHeight * .58 - baseline : 56 - baseline) + 'px'; // Б: базовая линия на 42% высоты
     ruler.style.bottom = (baseline - 10) + 'px';
     counter.style.bottom = (baseline - 32) + 'px';
 
@@ -844,15 +844,16 @@
       }
     });
 
-    const cta = $('.cta');
-    const cx = gsap.quickTo(cta, 'x', { duration: .8, ease: 'elastic.out(1,.4)' });
-    const cy = gsap.quickTo(cta, 'y', { duration: .8, ease: 'elastic.out(1,.4)' });
-    cta.addEventListener('pointermove', e => {
-      const r = cta.getBoundingClientRect();
-      cx((e.clientX - r.left - r.width / 2) * .25);
-      cy((e.clientY - r.top - r.height / 2) * .35);
+    $$('.cta, .btn-call').forEach(cta => {
+      const cx = gsap.quickTo(cta, 'x', { duration: .8, ease: 'elastic.out(1,.4)' });
+      const cy = gsap.quickTo(cta, 'y', { duration: .8, ease: 'elastic.out(1,.4)' });
+      cta.addEventListener('pointermove', e => {
+        const r = cta.getBoundingClientRect();
+        cx((e.clientX - r.left - r.width / 2) * .25);
+        cy((e.clientY - r.top - r.height / 2) * .35);
+      });
+      cta.addEventListener('pointerleave', () => { cx(0); cy(0); });
     });
-    cta.addEventListener('pointerleave', () => { cx(0); cy(0); });
   }
 
   // скролл: ЭТАЛОН улетает в шапку → камера летит в окно кв. 24 → интерьер
