@@ -434,7 +434,7 @@
       <div class="w-cap" id="capGarden"><b>Детский сад</b><span>380 м · 5 минут от двери</span></div>
       <div class="w-phrase" id="wPhrase">Шесть минут от двери<small>Лес · 420 м</small></div>
       <div class="w-cap" id="capSchool"><b>Школа</b><span>650 м · 8 минут от двери</span></div>
-      <div class="w-cap" id="capMetro"><b>Метро ВДНХ</b><span>15 минут: 6 пешком и 9 на автобусе</span></div>
+      <div class="w-cap" id="capMetro"><b>Метро ВДНХ</b><span>15 минут пешком от двери</span></div>
 
       <div class="w-map" id="wMap">
         <svg id="wMapSvg" aria-hidden="true"></svg>
@@ -444,7 +444,7 @@
       <div class="w-clock" id="wClock" aria-hidden="true">18:04</div>
       <div class="w-band" id="wBand" aria-hidden="true"><i id="wFill"></i><em id="wDot"></em></div>
     </div>
-    <svg class="route" id="route" aria-hidden="true"><path id="routeA" pathLength="1"/><path id="routeB" pathLength="1"/></svg>
+    <svg class="route" id="route" aria-hidden="true"><path id="routeB" pathLength="1"/></svg>
 
     <div class="grain" aria-hidden="true"></div>
 
@@ -1007,19 +1007,13 @@
       .to('#roomBlur', { opacity: 1, duration: 1.7 }, 13)
       .to({}, { duration: 1.5 }, 15); // пауза: квиз в руках
 
-    // ---------- блок 04: прогулка. Линия итога отрывается от листа и становится маршрутом ----------
+    // ---------- блок 04: прогулка. Лист уезжает, камера вылетает через окно к калитке; линия маршрута — только на дорожке ----------
     const W_ = () => hero.clientWidth, H_ = () => hero.clientHeight;
     $$('.w-scene').forEach(el => { el.style.backgroundImage = `url("${el.dataset.bg}")`; }); // грузим после вступления
-    const routeA = $('#routeA'), routeB = $('#routeB'), dimr = $('#cDimr');
+    const routeB = $('#routeB');
     const winPt = () => { const b = roomBox(); return [b.ox + .5 * b.iw, b.oy + .475 * b.ih]; }; // середина окна в комнате
-    const pA = { p: 0 }; let f0 = 0, routeBuilt = false;
-    const buildRoute = () => {
-      // старт — там, где стоит размерная линия под итогом в раскрытом квизе
-      const [[L, T]] = openQuad(), x0 = L + dimr.offsetLeft, y0 = T + dimr.offsetTop + 5, x1 = x0 + dimr.offsetWidth, [wx, wy] = winPt();
-      routeA.setAttribute('d', `M${x0} ${y0} L${x1} ${y0} C${x1 + 160} ${y0 - 40},${wx + 220} ${wy - 160},${wx} ${wy} L${wx} ${H_()}`);
-      f0 = dimr.offsetWidth / routeA.getTotalLength();
-      routeB.setAttribute('d', `M${W_() / 2} ${H_()} L${W_() / 2} ${H_() * .6}`);
-    };
+    const buildRoute = () => routeB.setAttribute('d', `M${W_() / 2} ${H_()} L${W_() / 2} ${H_() * .6}`); // по дорожке к калитке
+    buildRoute();
     // часы и лента минут
     const clockEl = $('#wClock'), fillEl = $('#wFill'), dotEl = $('#wDot'), clock = { m: 0 };
     [[5, 'сад'], [6, 'лес'], [8, 'школа'], [15, 'метро']].forEach(([m, name]) => {
@@ -1037,7 +1031,7 @@
       { x: 980, y: 300, name: 'Лес', text: 'до леса 420 м · 6 минут', route: 'M800 470 C860 420,900 380,980 300' },
       { x: 640, y: 310, name: 'Детский сад', text: 'до сада 380 м · 5 минут', route: 'M800 470 C760 410,700 370,640 310' },
       { x: 1060, y: 760, name: 'Школа', text: 'до школы 650 м · 8 минут', route: 'M800 470 C880 560,980 650,1060 760' },
-      { x: 430, y: 770, name: 'Метро ВДНХ', text: 'до метро 15 минут: 6 пешком и 9 на автобусе', route: 'M800 470 C740 540,680 590,610 640 L430 770' }
+      { x: 250, y: 840, name: 'Метро ВДНХ', text: 'до метро ВДНХ 15 минут пешком', route: 'M800 470 C700 560,500 690,250 840' }
     ];
     const mapSvg = $('#wMapSvg'), mapEl = $('#wMap');
     const hills = [0, 1, 2, 3, 4, 5].map(i => {
@@ -1056,7 +1050,7 @@
     let vb = null;
     const placeMap = () => {
       // на телефоне кадр уже: показываем только район вокруг точек и вписываем его целиком
-      const small = W_() < 760, v = small ? [380, 180, 760, 680] : [0, 0, 1600, 900];
+      const small = W_() < 760, v = small ? [200, 180, 940, 720] : [0, 0, 1600, 900];
       mapSvg.setAttribute('viewBox', v.join(' '));
       mapSvg.setAttribute('preserveAspectRatio', small ? 'xMidYMid meet' : 'xMidYMid slice');
       const k = small ? Math.min(W_() / v[2], H_() / v[3]) : Math.max(W_() / v[2], H_() / v[3]);
@@ -1070,7 +1064,7 @@
       homeLab.style.left = (vb.ox + HOME[0] * k) + 'px'; homeLab.style.top = (vb.oy + HOME[1] * k) + 'px';
     };
     placeMap();
-    ScrollTrigger.addEventListener('refreshInit', () => { placeMap(); routeBuilt = false; });
+    ScrollTrigger.addEventListener('refreshInit', () => { placeMap(); buildRoute(); });
 
     // курсор на карте меряет расстояние от дома
     const xhEl = $('#xh'), xhRead = $('#xhR'); let mapOn = false;
@@ -1084,13 +1078,6 @@
     };
 
     onWalk = t => {
-      // линия итога: под листом она заменяет собой размерную линию, дальше живёт отдельно
-      const out = t >= 16.5;
-      if (out && !routeBuilt) { buildRoute(); routeBuilt = true; }
-      if (!out) routeBuilt = false;
-      dimr.style.visibility = out ? 'hidden' : '';
-      routeA.style.opacity = out ? gsap.utils.clamp(0, 1, (20.5 - t) / .3) : 0;
-      if (out) routeA.style.strokeDashoffset = 1 - (f0 + (1 - f0) * pA.p);
       drawClock();
       const on = t >= 29; if (on !== mapOn) { mapOn = on; xhEl.classList.toggle('map-read', on); }
     };
@@ -1099,13 +1086,12 @@
     const show = (id, t0, dur = .4) => tl.fromTo(id, { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: dur, ease: 'power2.out', immediateRender: false }, t0);
     const hide = (id, t0, dur = .3) => tl.to(id, { autoAlpha: 0, duration: dur }, t0);
 
-    // лист уезжает вверх, линия остаётся; размытие спадает, взгляд поднимается от стола
+    // лист уезжает вверх; размытие спадает, взгляд поднимается от стола
     tl.to('#calcWrap', { y: () => -H_() * 1.1, duration: 1, ease: 'power2.in' }, 16.5)
       .to(calc, { autoAlpha: 0, duration: .01 }, 17.5)
       .to('#roomBlur', { opacity: 0, duration: .9 }, 17)
       .to(roomCam, { scale: 1, duration: 1.2, ease: 'power2.inOut' }, 17)
-      // линия бежит к окну и дальше вниз, камера летит за ней
-      .to(pA, { p: 1, duration: 3, ease: 'power1.inOut' }, 17)
+      // камера летит в окно
       .set(roomCam, { transformOrigin: () => winPt().map(v => v + 'px').join(' ') }, 18.25)
       .to(roomCam, { scale: 5, duration: 1.4, ease: 'power2.in' }, 18.3)
       // сквозь окно вниз, во двор: кадр калитки проявляется, опускаясь
